@@ -2,18 +2,17 @@
 
 import gevent
 import re
+import os
 
-from lib.drivers.factory.factory\
-    import Factory as DriverFactory
 from lib.errors\
-    import ExistsError, NotExistsError
+    import BadArgumentError, CyclicReferenceError, NotExistsError
 from lib.storage_route\
     import StorageRoute
-from lib.storage_value\
-    import StorageValue
+from lib.storage_key\
+    import StorageKey
 
 
-class StorageTimer:
+class StorageRefreshTimer:
 
     _f = None
     _timers = {}
@@ -31,7 +30,7 @@ class StorageTimer:
         return self
 
     def attach(
-        self, timeout, v, payload=None
+        self, timeout, k, payload=None
     ):
         timeout = int(timeout)
 
@@ -48,7 +47,7 @@ class StorageTimer:
 
                 gevent.spawn(f)
 
-        self._timers[timeout][v] = payload
+            self._timers[timeout][k] = payload
 
     def detach(
         self, v
@@ -58,91 +57,177 @@ class StorageTimer:
 
 class Storage:
 
-    _active_driver = DriverFactory.get_default()
+    _active_driver = None
+    _engine = None
     _key_routes = {}
-    _timer = StorageTimer()
+    _on_value_recompile = None
+    _timer = StorageRefreshTimer()
     _values = {}
 
-    def _as_client(
-        self, context
+    def _get_value_recompiled(
+        self, value, k=None, locks=None
     ):
-        for k, v in context.iteritems():
-            if k in self._values:
-                self._values[k].update()
+        if locks is None:
+            locks = {}
 
-    def _as_keeper(
-        self, context
-    ):
-        for k, v in context.iteritems():
-            if k in self._values:
-                self._values[k].update()
+        if isinstance(value, dict) and value.get('@@'):
+            other = self.g(value.get('@@'), locks=locks)
 
-    def _as_server(
+            if isinstance(other, dict):
+                other.update(value)
+
+                value = other
+
+                value.pop('@@')
+
+        iter = value.iteritems() if isinstance(value, dict) else enumerate(value) if isinstance(value, list) else None
+
+        if iter:
+            replacement = {}
+
+            for k, v in iter:
+                if (isinstance(v, str) or isinstance(v, unicode)) and v[0:2] == '@@':
+                    path = v.split(':')
+
+                    if len(path) > 2:
+                        if path[1] == 'env':
+                            replacement[k] = self.g(path[2], locks=locks)
+
+                            continue
+
+                        if path[1] == 'sys':
+                            replacement[k] = os.environ.get(path[2])
+
+                            continue
+
+                if isinstance(v, dict) or isinstance(v, list):
+                    replacement[k] = self._get_value_recompiled(v, locks=locks)
+
+            if isinstance(value, dict):
+                value.update(replacement)
+            elif isinstance(value, list):
+                value = [replacement[i] if i in replacement else v for i, v in enumerate(value)]
+
+        return value
+
+    def _on_detach(
         self, context
     ):
         for k, v in context.iteritems():
             if k in self._values:
-                self._values.pop(k)
+                self._engine.event('detached', self._values.pop(k))
+
+    def _on_invalidate(
+        self, context
+    ):
+        for k, v in context.iteritems():
+            if k in self._values:
+                self._values[k].set_value(self._on_value_recompile(self._values[k].update().get_value())).invalidate()
 
     def __init__(
-        self
+        self, engine
     ):
-        self.set_route('.*')
+        self._engine = engine
 
         self.set_mode_keeper()
 
     def set_active_driver(
         self, driver, config=None
     ):
-        self._active_driver = DriverFactory(driver, config) if isinstance(driver, str) else driver
-
-        return self
-
-    def set_mode_client(
-        self
-    ):
-        self._timer.set_f(self._as_client)
-
-        return self.set_active_driver('env')
-
-    def set_mode_keeper(
-        self
-    ):
-        self._timer.set_f(self._as_keeper)
-
-        return self
-
-    def set_mode_server(
-        self
-    ):
-        self._timer.set_f(self._as_server)
+        self._active_driver = self._engine.get_driver_factory().produce(driver, config) if isinstance(driver, str) else driver
 
         return self
 
     def set_route(
         self, pattern
     ):
-        self._key_routes[re.compile(pattern)] = StorageRoute(self._active_driver)
+        self._key_routes[pattern] = [re.compile(pattern), StorageRoute(self._active_driver)]
+
+        return self
+
+    def set_mode_client(
+        self
+    ):
+        self._on_value_recompile = None
+
+        self._timer.set_f(self._on_invalidate)
+
+        return self.set_active_driver('env')
+
+    def set_mode_keeper(
+        self
+    ):
+        self._on_value_recompile = self._get_value_recompiled
+
+        self._timer.set_f(self._on_invalidate)
+
+        return self.set_active_driver(self._engine.get_driver_factory().get_default())
+
+    def set_mode_server(
+        self
+    ):
+        self._on_value_recompile = self._get_value_recompiled
+
+        self._timer.set_f(self._on_detach)
 
         return self
 
     def g(
-        self, k, d=None
+        self, k, d=None, raw=False, locks=None
     ):
-        d = k.split(':')
+        k = k.split(':')
 
-        if len(d):
-            k = d[0].split('.')
+        decryption_key = k[2] if len(k) > 2 else None
+        sync_period = k[1] if len(k) > 1 else None
+
+        if len(k[0]):
+            k = k[0].split('.')
 
             if len(k):
                 if k[0] not in self._values:
-                    index = reduce(lambda x, y: y if y.search(k[0]) else x, self._key_routes.iterkeys(), None)
 
-                    if index is not None:
-                        self._values[k[0]] = StorageValue(k[0], self._key_routes[index].driver, self._timer, decryption_key=d[1] if 2 in d else None, sync_each=d[1] if 1 in d else 30)
-                    else:
-                        return NotExistsError()
+                    """ capture update lock for key """
+                    if locks:
+                        if locks.get(k[0]):
+                            raise CyclicReferenceError(k[0])
+                        else:
+                            locks[k[0]] = True
 
-                return self._values[k[0]].g(k[1:])
+                    if len(self._key_routes) == 0:
+                        self.set_route('.*')
 
-        return NotExistsError()
+                    route = self._key_routes.get(reduce(lambda x, (a, b): a if b[0].search(k[0]) else x, self._key_routes.iteritems(), None))
+
+                    try:
+                        if route is not None:
+                            (regex, route) = route
+
+                            self._values[k[0]] = StorageKey(self._engine, k[0], route.driver, decryption_key=decryption_key)
+
+                            if self._on_value_recompile:
+                                self._values[k[0]].set_value(self._on_value_recompile(self._values[k[0]].get_value(), locks))
+
+                            self._values[k[0]].invalidate()
+
+                            if sync_period:
+                                if sync_period.isdigit():
+                                    self._timer.attach(sync_period, k[0])
+                                else:
+                                    raise BadArgumentError('invalid sync period')
+                            else:
+                                self._timer.attach(60, k[0])
+                        else:
+                            raise NotExistsError('route not found')
+                    except BaseException as e:
+                        if locks:
+                            locks.pop(k[0])
+
+                        raise e
+
+                    """ release update lock for key """
+                    if locks:
+                        locks.pop(k[0])
+
+                return self._values[k[0]].to_dict() if raw else self._values[k[0]].g(k[1:], d)
+
+        raise BadArgumentError()

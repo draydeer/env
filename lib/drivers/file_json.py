@@ -8,7 +8,7 @@ from lib.errors\
     import NotExistsError
 
 
-class Env(Driver):
+class FileJson(Driver):
 
     def g(
         self, k

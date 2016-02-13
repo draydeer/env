@@ -6,12 +6,24 @@ from lib.drivers.consul\
     import Consul
 from lib.drivers.env\
     import Env
+from lib.drivers.file_ini\
+    import FileIni
+from lib.drivers.file_json\
+    import FileJson
+from lib.drivers.file_yaml\
+    import FileYaml
 from lib.drivers.mongo\
     import Mongo
 from lib.drivers.mongo_replica_set\
     import MongoResplicaSet
 from lib.errors\
     import NotExistsError
+from lib.drivers.redis\
+    import Redis
+from lib.drivers.sql\
+    import Sql
+from lib.drivers.ssdb\
+    import Ssdb
 
 
 class Factory:
@@ -19,8 +31,14 @@ class Factory:
     initiators = {
         'consul': Consul,
         'env': Env,
+        'fileIni': FileIni,
+        'fileJson': FileJson,
+        'fileYaml': FileYaml,
         'mongo': Mongo,
         'mongoReplicaSet': MongoResplicaSet,
+        'redis': Redis,
+        'sql': Sql,
+        'ssdb': Ssdb
     }
 
     @staticmethod

@@ -22,4 +22,7 @@ class Mongo(Driver):
     ):
         result = self._client.env_conf.find_one({'k': k})
 
-        return Value(result.get('v'), result.get('type')) if result is not None else NotExistsError()
+        if result is not None:
+            return Value(result.get('v'), result.get('t'))
+
+        raise NotExistsError()

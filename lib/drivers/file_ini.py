@@ -8,7 +8,7 @@ from lib.errors\
     import NotExistsError
 
 
-class Env(Driver):
+class FileIni(Driver):
 
     def g(
         self, k

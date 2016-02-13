@@ -1,5 +1,9 @@
 
 
+from packages.serializer\
+    import Dict
+
+
 class Driver:
 
     _client = None
@@ -23,7 +27,7 @@ class Driver:
         return None
 
 
-class Value:
+class Value(Dict):
 
     type = None
     v = None

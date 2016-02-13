@@ -11,7 +11,7 @@ config = Config({
         'env': {
             'initiator': 'env',
 
-            'host': 'localhost:8089',
+            'host': 'http://localhost:8089',
             'key': '1'
         },
         'mongo': {
