@@ -16,6 +16,8 @@ from config.active\
     import config
 from lib.engine\
     import Engine
+from lib.errors\
+    import BadArgumentError, NotExistsError
 from packages.args\
     import Args
 
@@ -40,14 +42,28 @@ def application(
 
         return [json.dumps(engine.g(path[0], None, len(path) > 1 and path[1] == '$'))]
     except BaseException as e:
+        if isinstance(e, BadArgumentError):
+            start_response(
+                '400 Bag Request',
+                [('Content-Type', 'application/json')]
+            )
+
+            return [json.dumps(e.message)]
+
+        if isinstance(e, NotExistsError):
+            start_response(
+                '404 Not Found',
+                [('Content-Type', 'application/json')]
+            )
+
+            return [json.dumps(e.message)]
+
         start_response(
             '500 Internal Server Error',
             [('Content-Type', 'application/json')]
         )
 
-        raise e
-
-        return [b'null']
+        return []
 
 
 WSGIServer(('', int(args.arg(['p', 'port'], 8088))), application).serve_forever()
