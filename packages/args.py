@@ -13,27 +13,27 @@ class Args(config.Config):
             argv = argv.split(' ')
 
         args = {}
-        pref = None
+        prefix = None
 
         for v in argv[offset:]:
-            if pref is not None:
+            if prefix is not None:
                 if v.strip('-') != v:
-                    args[pref] = True
+                    args[prefix] = True
 
-                    pref = v.strip('-')
+                    prefix = v.strip('-')
                 else:
-                    args[pref] = v
+                    args[prefix] = v
 
-                    pref = None
+                    prefix = None
             else:
                 if v.strip('-') != v:
                     if v.find('=') != - 1:
-                        args[v.split('=')[0].strip('-')] = v.split('=')[1]
+                        args[v.split('=')[0].strip('-')] = v.split('=', 1)[1]
                     else:
-                        pref = v.strip('-')
+                        prefix = v.strip('-')
 
-        if pref is not None:
-            args[pref] = True
+        if prefix is not None:
+            args[prefix] = True
 
         return Args(args)
 
