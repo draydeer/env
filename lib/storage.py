@@ -2,10 +2,9 @@
 
 import gevent
 import re
-import os
 
 from lib.errors\
-    import BadArgumentError, CircularReferenceError, NotExistsError
+    import BadArgumentError, NotExistsError
 from lib.storage_compiler\
     import StorageCompiler
 from lib.storage_route\
@@ -151,12 +150,10 @@ class Storage:
                     if route is not None:
                         (regex, route) = route
 
-                        self._values[k[0]] = StorageKey(self._engine, k[0], route.driver, decryption_key=decryption_key)
+                        storage_key = StorageKey(self._engine, k[0], route.driver, decryption_key=decryption_key)
 
                         if self._compiler:
-                            self._values[k[0]].set_value(self._compiler.compile(k[0], self._values[k[0]].get_value()))
-
-                        self._values[k[0]].invalidate()
+                            storage_key.set_value(self._compiler.compile(k[0], storage_key.get_value()))
 
                         if sync_period:
                             if sync_period.isdigit():
@@ -165,6 +162,8 @@ class Storage:
                                 raise BadArgumentError('invalid sync period')
                         else:
                             self._timer.attach(60, k[0])
+
+                        self._values[k[0]] = storage_key.invalidate()
                     else:
                         raise NotExistsError('route not found')
 

@@ -5,7 +5,7 @@ from packages.config\
 
 
 config = Config({
-    'default': 'mongo',
+    'default': 'memory',
     'mode': 'keeper',
     'drivers': {
         'env': {
@@ -13,6 +13,16 @@ config = Config({
 
             'host': 'http://localhost:8089',
             'key': '1'
+        },
+        'memory': {
+            'initiator': 'memory',
+
+            'values': {
+                'mem': {
+                    'mom': '@@:env:mom'
+                },
+                'mom': 5
+            }
         },
         'mongo': {
             'initiator': 'mongo',

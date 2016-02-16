@@ -27,7 +27,7 @@ class StorageKey(Dict):
     v = Value()
 
     def __init__(
-        self, engine, k, driver, decryption_key=None, sync_each=60
+        self, engine, k, driver, decryption_key=None
     ):
         self._decryption_key = decryption_key
         self._driver = driver
@@ -91,7 +91,10 @@ class StorageKey(Dict):
     ):
         if json.dumps(self.v.v) != json.dumps(self._old):
             self.send_event('invalidate')
-        self._old = self.v.v
+
+            self._old = self.v.v
+
+        return self
 
     def send_event(
         self, event

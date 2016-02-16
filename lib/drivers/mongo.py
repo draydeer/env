@@ -25,4 +25,4 @@ class Mongo(Driver):
         if result is not None:
             return Value(result.get('v'), result.get('t'))
 
-        raise NotExistsError()
+        raise NotExistsError(k)

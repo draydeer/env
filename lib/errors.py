@@ -2,6 +2,8 @@
 
 class Error(BaseException):
 
+    message = None
+
     @classmethod
     def throw(
         cls, value=None
@@ -9,15 +11,23 @@ class Error(BaseException):
         raise cls(value)
 
 
-class CircularReferenceError(Error):
-    pass
-
-
 class BadArgumentError(Error):
     pass
 
 
+class CircularReferenceError(Error):
+    pass
+
+
+class ConflictError(Error):
+    pass
+
+
 class ExistsError(Error):
+    pass
+
+
+class InternalError(Error):
     pass
 
 

@@ -14,12 +14,10 @@ monkey.patch_all()
 import json
 import sys
 
-from config.active\
-    import config
 from lib.engine\
     import Engine
 from lib.errors\
-    import BadArgumentError, NotExistsError
+    import Error
 from packages.args\
     import Args
 
@@ -29,6 +27,11 @@ monkey.patch_all()
 
 args = Args.parse(sys.argv)
 engine = Engine().set_mode(args.arg(['m', 'mode'], 'client'))
+errors = {
+    'BadArgumentError': '400 Bag Request',
+    'CircularReferenceError': '409 Conflict',
+    'NotExistsError': '404 Not Found',
+}
 
 
 def application(
@@ -44,30 +47,12 @@ def application(
 
         return [json.dumps(engine.g(path[0], None, len(path) > 1 and path[1] == '$'))]
     except BaseException as e:
-        if isinstance(e, BadArgumentError):
-            start_response(
-                '400 Bag Request',
-                [('Content-Type', 'application/json')]
-            )
-
-            return [json.dumps(e.message)]
-
-        if isinstance(e, NotExistsError):
-            start_response(
-                '404 Not Found',
-                [('Content-Type', 'application/json')]
-            )
-
-            return [json.dumps(e.message)]
-
         start_response(
-            '500 Internal Server Error',
+            errors[e.__class__.__name__] if e.__class__.__name__ in errors else '500 Internal Server Error',
             [('Content-Type', 'application/json')]
         )
 
-        print traceback.format_exc()
-
-        return []
+        return [json.dumps(e.message) if isinstance(e, Error) else 'null']
 
 
 WSGIServer(('', int(args.arg(['p', 'port'], 8088))), application).serve_forever()

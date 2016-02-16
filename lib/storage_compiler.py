@@ -28,48 +28,48 @@ class StorageCompiler(EngineModule):
 
         self._key_compile_locks[k] = True
 
-        #try:
-        if isinstance(v, dict) and v.get('@@'):
-            other = self._storage.g(v.get('@@'))
+        try:
+            if isinstance(v, dict) and v.get('@@'):
+                other = self._storage.g(v.get('@@'))
 
-            if isinstance(other, dict):
-                other.update(v)
+                if isinstance(other, dict):
+                    other.update(v)
 
-                v = other
+                    v = other
 
-                v.pop('@@')
+                    v.pop('@@')
 
-        iter = v.iteritems() if isinstance(v, dict) else enumerate(v) if isinstance(v, list) else None
+            iter = v.iteritems() if isinstance(v, dict) else enumerate(v) if isinstance(v, list) else None
 
-        if iter:
-            replacement = {}
+            if iter:
+                replacement = {}
 
-            for a, b in iter:
-                if (isinstance(b, str) or isinstance(b, unicode)) is True and b[0:2] == '@@':
-                    path = b.split(':')
+                for a, b in iter:
+                    if (isinstance(b, str) or isinstance(b, unicode)) is True and b[0:2] == '@@':
+                        path = b.split(':')
 
-                    if len(path) > 2:
-                        if path[1] == 'env':
-                            replacement[a] = self._storage.g(path[2])
+                        if len(path) > 2:
+                            if path[1] == 'env':
+                                replacement[a] = self._storage.g(path[2])
 
-                            continue
+                                continue
 
-                        if path[1] == 'var':
-                            replacement[a] = os.environ.get(path[2])
+                            if path[1] == 'var':
+                                replacement[a] = os.environ.get(path[2])
 
-                            continue
+                                continue
 
-                if isinstance(b, dict) or isinstance(b, list):
-                    replacement[a] = self.compile(a, b)
+                    if isinstance(b, dict) or isinstance(b, list):
+                        replacement[a] = self.compile(a, b)
 
-            if isinstance(v, dict):
-                v.update(replacement)
-            elif isinstance(v, list):
-                v = [replacement[i] if i in replacement else v for i, v in enumerate(v)]
-        #except BaseException as e:
-        #    self._key_compile_locks.pop(k)
+                if isinstance(v, dict):
+                    v.update(replacement)
+                elif isinstance(v, list):
+                    v = [replacement[i] if i in replacement else v for i, v in enumerate(v)]
+        except BaseException as e:
+            self._key_compile_locks.pop(k)
 
-        #    raise e
+            raise e
 
         self._key_compile_locks.pop(k)
 
