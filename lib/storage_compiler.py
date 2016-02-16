@@ -2,14 +2,10 @@
 
 import os
 
-from lib.engine\
+from lib.engine_module\
     import EngineModule
 from lib.errors\
-    import CyclicReferenceError
-from lib.storage\
-    import Storage
-from packages.cast\
-    import cast
+    import CircularReferenceError
 
 
 class StorageCompiler(EngineModule):
@@ -22,16 +18,17 @@ class StorageCompiler(EngineModule):
     ):
         EngineModule.__init__(self, engine)
 
-        self._storage = cast(storage, Storage)
+        self._storage = storage
 
     def compile(
         self, k, v
     ):
-        if k in self._storage:
-            raise CyclicReferenceError(k)
+        if k in self._key_compile_locks:
+            raise CircularReferenceError(k)
 
         self._key_compile_locks[k] = True
 
+        #try:
         if isinstance(v, dict) and v.get('@@'):
             other = self._storage.g(v.get('@@'))
 
@@ -47,28 +44,32 @@ class StorageCompiler(EngineModule):
         if iter:
             replacement = {}
 
-            for k, v in iter:
-                if (isinstance(v, str) or isinstance(v, unicode)) and v[0:2] == '@@':
-                    path = v.split(':')
+            for a, b in iter:
+                if (isinstance(b, str) or isinstance(b, unicode)) is True and b[0:2] == '@@':
+                    path = b.split(':')
 
                     if len(path) > 2:
                         if path[1] == 'env':
-                            replacement[k] = self._storage.g(path[2])
+                            replacement[a] = self._storage.g(path[2])
 
                             continue
 
                         if path[1] == 'var':
-                            replacement[k] = os.environ.get(path[2])
+                            replacement[a] = os.environ.get(path[2])
 
                             continue
 
-                if isinstance(v, dict) or isinstance(v, list):
-                    replacement[k] = self.compile(k, v)
+                if isinstance(b, dict) or isinstance(b, list):
+                    replacement[a] = self.compile(a, b)
 
             if isinstance(v, dict):
                 v.update(replacement)
             elif isinstance(v, list):
                 v = [replacement[i] if i in replacement else v for i, v in enumerate(v)]
+        #except BaseException as e:
+        #    self._key_compile_locks.pop(k)
+
+        #    raise e
 
         self._key_compile_locks.pop(k)
 

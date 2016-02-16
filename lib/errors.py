@@ -9,7 +9,7 @@ class Error(BaseException):
         raise cls(value)
 
 
-class CyclicReferenceError(Error):
+class CircularReferenceError(Error):
     pass
 
 

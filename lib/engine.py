@@ -2,8 +2,8 @@
 
 import storage
 
-from lib.drivers.factory.factory\
-    import Factory as DriverFactory
+from lib.drivers.holder.holder\
+    import Holder as DriverHolder
 from lib.errors\
     import BadArgumentError
 from lib.types.system_file\
@@ -33,7 +33,7 @@ class Engine:
     def get_driver_factory(
         self
     ):
-        return DriverFactory
+        return DriverHolder
 
     def set_mode(
         self, value
@@ -70,13 +70,3 @@ class Engine:
                 return handler(*value)
 
         return None
-
-
-class EngineModule:
-
-    _engine = None
-
-    def __init__(
-        self, engine
-    ):
-        self._engine = engine

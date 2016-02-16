@@ -1,5 +1,7 @@
 
 
+import traceback
+
 from gevent.pywsgi\
     import WSGIServer
 from gevent\
@@ -62,6 +64,8 @@ def application(
             '500 Internal Server Error',
             [('Content-Type', 'application/json')]
         )
+
+        print traceback.format_exc()
 
         return []
 

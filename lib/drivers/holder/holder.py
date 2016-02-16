@@ -6,12 +6,16 @@ from lib.drivers.consul\
     import Consul
 from lib.drivers.env\
     import Env
+from lib.drivers.etcd\
+    import Etcd
 from lib.drivers.file_ini\
     import FileIni
 from lib.drivers.file_json\
     import FileJson
 from lib.drivers.file_yaml\
     import FileYaml
+from lib.drivers.memory\
+    import Memory
 from lib.drivers.mongo\
     import Mongo
 from lib.drivers.mongo_replica_set\
@@ -26,14 +30,16 @@ from lib.drivers.ssdb\
     import Ssdb
 
 
-class Factory:
+class Holder:
 
     initiators = {
         'consul': Consul,
         'env': Env,
+        'etcd': Etcd,
         'fileIni': FileIni,
         'fileJson': FileJson,
         'fileYaml': FileYaml,
+        'memory': Memory,
         'mongo': Mongo,
         'mongoReplicaSet': MongoResplicaSet,
         'redis': Redis,
@@ -45,7 +51,7 @@ class Factory:
     def get(
         k
     ):
-        value = getattr(Factory, k)
+        value = getattr(Holder, k)
 
         return value
 
@@ -53,7 +59,7 @@ class Factory:
     def set(
         k, v
     ):
-        setattr(Factory, k, v)
+        setattr(Holder, k, v)
 
         return v
 
@@ -61,7 +67,7 @@ class Factory:
     def has(
         k
     ):
-        value = hasattr(Factory, k)
+        value = hasattr(Holder, k)
 
         return value
 
@@ -69,21 +75,21 @@ class Factory:
     def get_default(
 
     ):
-        value = Factory.produce(active_config.get('default', 'env'))
+        value = Holder.req(active_config.get('default', 'env'))
 
         return value
 
     @staticmethod
-    def produce(
+    def req(
         alias, config=None
     ):
-        if Factory.has(alias):
-            return Factory.get(alias)
+        if Holder.has(alias):
+            return Holder.get(alias)
 
         if config is None:
             config = active_config['drivers'][alias] if alias in active_config['drivers'] else None
 
-        if config and config.get('initiator', alias) in Factory.initiators:
-            return Factory.set(alias, Factory.initiators[config.get('initiator', alias)](config))
+        if config and config.get('initiator', alias) in Holder.initiators:
+            return Holder.set(alias, Holder.initiators[config.get('initiator', alias)](config))
 
         raise NotExistsError('driver not exists: ' + alias)
