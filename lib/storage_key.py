@@ -107,13 +107,11 @@ class StorageKey(Dict):
         self, throw=False
     ):
         if self._driver:
-            v = self._driver.g(self.k)
-
-            if isinstance(v, NotExistsError):
+            try:
+                self.set_value(self._driver.g(self.k))
+            except BaseException as e:
                 if throw:
-                    raise v
-            else:
-                self.set_value(v)
+                    raise e
 
         self.last_sync = time.time()
 

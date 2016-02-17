@@ -38,9 +38,7 @@ class Config(dict):
 
                 continue
 
-
             return d
-
 
         return r
 

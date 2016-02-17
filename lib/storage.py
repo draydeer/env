@@ -11,6 +11,8 @@ from lib.storage_route\
     import StorageRoute
 from lib.storage_key\
     import StorageKey
+from packages.cast\
+    import try_type
 
 
 class StorageRefreshTimer:
@@ -70,7 +72,7 @@ class Storage:
     ):
         for k, v in context.iteritems():
             if k in self._values:
-                self._engine.event('detached', self._values.pop(k))
+                self._engine.event('detach', self._values.pop(k))
 
     def _on_invalidate(
         self, context
@@ -89,7 +91,14 @@ class Storage:
     def set_active_driver(
         self, driver, config=None
     ):
-        self._active_driver = self._engine.get_driver_factory().req(driver, config) if isinstance(driver, str) else driver
+        self._active_driver = self._engine.get_driver_holder().req(driver, config) if isinstance(driver, str) else driver
+
+        return self
+
+    def set_compiler(
+        self, compiler
+    ):
+        self._compiler = try_type(compiler, StorageCompiler, None)
 
         return self
 
@@ -103,32 +112,26 @@ class Storage:
     def set_mode_client(
         self
     ):
-        self._compiler = None
-
-        self._timer.set_f(self._on_invalidate)
+        self.set_compiler(None)._timer.set_f(self._on_invalidate)
 
         return self.set_active_driver('env')
 
     def set_mode_keeper(
         self
     ):
-        self._compiler = StorageCompiler(self._engine, self)
+        self.set_compiler(StorageCompiler(self._engine, self))._timer.set_f(self._on_invalidate)
 
-        self._timer.set_f(self._on_invalidate)
-
-        return self.set_active_driver(self._engine.get_driver_factory().get_default())
+        return self.set_active_driver(self._engine.get_driver_holder().get_default())
 
     def set_mode_server(
         self
     ):
-        self._compiler = StorageCompiler(self._engine, self)
-
-        self._timer.set_f(self._on_detach)
+        self.set_compiler(StorageCompiler(self._engine, self))._timer.set_f(self._on_detach)
 
         return self
 
     def g(
-        self, k, d=None, raw=False
+        self, k, default_value=None, raw=False
     ):
         k = k.split(':')
 
@@ -150,11 +153,6 @@ class Storage:
                     if route is not None:
                         (regex, route) = route
 
-                        storage_key = StorageKey(self._engine, k[0], route.driver, decryption_key=decryption_key)
-
-                        if self._compiler:
-                            storage_key.set_value(self._compiler.compile(k[0], storage_key.get_value()))
-
                         if sync_period:
                             if sync_period.isdigit():
                                 self._timer.attach(sync_period, k[0])
@@ -163,10 +161,15 @@ class Storage:
                         else:
                             self._timer.attach(60, k[0])
 
+                        storage_key = StorageKey(self._engine, k[0], route.driver, decryption_key=decryption_key)
+
+                        if self._compiler:
+                            storage_key.set_value(self._compiler.compile(k[0], storage_key.get_value()))
+
                         self._values[k[0]] = storage_key.invalidate()
                     else:
                         raise NotExistsError('route not found')
 
-                return self._values[k[0]].to_dict() if raw else self._values[k[0]].g(k[1:], d)
+                return self._values[k[0]].to_dict() if raw else self._values[k[0]].g(k[1:], default_value)
 
         raise BadArgumentError()

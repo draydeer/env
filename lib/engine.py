@@ -30,7 +30,7 @@ class Engine:
     ):
         return self._storage.g(k, d, raw)
 
-    def get_driver_factory(
+    def get_driver_holder(
         self
     ):
         return DriverHolder

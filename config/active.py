@@ -19,7 +19,7 @@ config = Config({
 
             'values': {
                 'mem': {
-                    'mom': '@@:env:mom'
+                    'mom': '@@:env:mem'
                 },
                 'mom': 5
             }

@@ -42,7 +42,7 @@ class StorageCompiler(EngineModule):
             iter = v.iteritems() if isinstance(v, dict) else enumerate(v) if isinstance(v, list) else None
 
             if iter:
-                replacement = {}
+                patch = {}
 
                 for a, b in iter:
                     if (isinstance(b, str) or isinstance(b, unicode)) is True and b[0:2] == '@@':
@@ -50,22 +50,22 @@ class StorageCompiler(EngineModule):
 
                         if len(path) > 2:
                             if path[1] == 'env':
-                                replacement[a] = self._storage.g(path[2])
+                                patch[a] = self._storage.g(path[2])
 
                                 continue
 
                             if path[1] == 'var':
-                                replacement[a] = os.environ.get(path[2])
+                                patch[a] = os.environ.get(path[2])
 
                                 continue
 
                     if isinstance(b, dict) or isinstance(b, list):
-                        replacement[a] = self.compile(a, b)
+                        patch[a] = self.compile(a, b)
 
                 if isinstance(v, dict):
-                    v.update(replacement)
+                    v.update(patch)
                 elif isinstance(v, list):
-                    v = [replacement[i] if i in replacement else v for i, v in enumerate(v)]
+                    v = [patch[i] if i in patch else v for i, v in enumerate(v)]
         except BaseException as e:
             self._key_compile_locks.pop(k)
 

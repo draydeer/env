@@ -30,6 +30,7 @@ engine = Engine().set_mode(args.arg(['m', 'mode'], 'client'))
 errors = {
     'BadArgumentError': '400 Bag Request',
     'CircularReferenceError': '409 Conflict',
+    'ConflictError': '409 Conflict',
     'NotExistsError': '404 Not Found',
 }
 
