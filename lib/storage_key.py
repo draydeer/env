@@ -39,7 +39,7 @@ class StorageKey(Dict):
     def get_value(
         self
     ):
-        value = self.v.v
+        value = self.v.data
 
         return value
 
@@ -69,7 +69,7 @@ class StorageKey(Dict):
     ):
         self.requested += 1
 
-        r = self.v.v
+        r = self.v.data
 
         for x in k.split('.') if isinstance(k, str) else k:
             if isinstance(r, dict):
@@ -89,10 +89,10 @@ class StorageKey(Dict):
     def invalidate(
         self
     ):
-        if json.dumps(self.v.v) != json.dumps(self._old):
+        if json.dumps(self.v.data) != json.dumps(self._old):
             self.send_event('invalidate')
 
-            self._old = self.v.v
+            self._old = self.v.data
 
         return self
 

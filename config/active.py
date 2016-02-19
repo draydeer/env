@@ -5,7 +5,7 @@ from packages.config\
 
 
 config = Config({
-    'default': 'memory',
+    'default': 'fileYaml',
     'mode': 'keeper',
     'drivers': {
         'env': {
@@ -14,12 +14,27 @@ config = Config({
             'host': 'http://localhost:8089',
             'key': '1'
         },
+        'fileIni': {
+            'initiator': 'fileIni',
+
+            'file': '/usr/local/dev/local/env/tests/test.ini'
+        },
+        'fileJson': {
+            'initiator': 'fileJson',
+
+            'file': '/usr/local/dev/local/env/tests/test.json'
+        },
+        'fileYaml': {
+            'initiator': 'fileYaml',
+
+            'file': '/usr/local/dev/local/env/tests/test.yaml'
+        },
         'memory': {
             'initiator': 'memory',
 
             'values': {
                 'mem': {
-                    'mom': '@@:env:mem'
+                    'mom': '@@:env:mom'
                 },
                 'mom': 5
             }

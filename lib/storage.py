@@ -60,33 +60,42 @@ class StorageRefreshTimer:
 
 class Storage:
 
+    DEFAULT_ROUTE_PATTERN = '.*'
+
     _active_driver = None
     _compiler = None
     _engine = None
+    _keys = {}
     _key_routes = {}
     _timer = StorageRefreshTimer()
-    _values = {}
 
     def _on_detach(
-        self, context
+        self, keys
     ):
-        for k, v in context.iteritems():
-            if k in self._values:
-                self._engine.event('detach', self._values.pop(k))
+        for k, v in keys.iteritems():
+            if k in self._keys:
+                self._engine.event('detach', self._keys.pop(k))
 
     def _on_invalidate(
-        self, context
+        self, keys
     ):
-        for k, v in context.iteritems():
-            if k in self._values:
-                self._values[k].set_value(self._compiler.compile(k, self._values[k].update().get_value())).invalidate()
+        for k, v in keys.iteritems():
+            if k in self._keys:
+                self._keys[k].set_value(self._keys[k].update().get_value()).invalidate()
+
+    def _on_invalidate_compiled(
+        self, keys
+    ):
+        for k, v in keys.iteritems():
+            if k in self._keys:
+                self._keys[k].set_value(self._compiler.compile(k, self._keys[k].update().get_value())).invalidate()
 
     def __init__(
         self, engine
     ):
         self._engine = engine
 
-        self.set_mode_keeper()
+        self.set_mode_keeper().set_route(Storage.DEFAULT_ROUTE_PATTERN)
 
     def set_active_driver(
         self, driver, config=None
@@ -103,9 +112,9 @@ class Storage:
         return self
 
     def set_route(
-        self, pattern
+        self, pattern, driver=None
     ):
-        self._key_routes[pattern] = [re.compile(pattern), StorageRoute(self._active_driver)]
+        self._key_routes[pattern] = [re.compile(pattern), StorageRoute(self._engine.get_driver_holder().req(driver) if driver else self._active_driver)]
 
         return self
 
@@ -119,7 +128,7 @@ class Storage:
     def set_mode_keeper(
         self
     ):
-        self.set_compiler(StorageCompiler(self._engine, self))._timer.set_f(self._on_invalidate)
+        self.set_compiler(StorageCompiler(self._engine, self))._timer.set_f(self._on_invalidate_compiled)
 
         return self.set_active_driver(self._engine.get_driver_holder().get_default())
 
@@ -142,13 +151,15 @@ class Storage:
             k = k[0].split('.')
 
             if len(k):
-                if k[0] not in self._values:
-                    if len(self._key_routes) == 0:
-                        self.set_route('.*')
-
-                    route = self._key_routes.get(
-                        reduce(lambda x, (a, b): a if b[0].search(k[0]) else x, self._key_routes.iteritems(), None)
+                if k[0] not in self._keys:
+                    route = reduce(
+                        lambda x, (a, b): b if a != Storage.DEFAULT_ROUTE_PATTERN and b[0].match(k[0]) else x,
+                        self._key_routes.iteritems(),
+                        None
                     )
+
+                    if route is None:
+                        route = self._key_routes.get(Storage.DEFAULT_ROUTE_PATTERN)
 
                     if route is not None:
                         (regex, route) = route
@@ -166,10 +177,10 @@ class Storage:
                         if self._compiler:
                             storage_key.set_value(self._compiler.compile(k[0], storage_key.get_value()))
 
-                        self._values[k[0]] = storage_key.invalidate()
+                        self._keys[k[0]] = storage_key.invalidate()
                     else:
                         raise NotExistsError('route not found')
 
-                return self._values[k[0]].to_dict() if raw else self._values[k[0]].g(k[1:], default_value)
+                return self._keys[k[0]].to_dict() if raw else self._keys[k[0]].g(k[1:], default_value)
 
         raise BadArgumentError()

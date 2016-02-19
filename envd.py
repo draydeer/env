@@ -1,15 +1,21 @@
 
 
-import traceback
-
-from gevent.pywsgi\
-    import WSGIServer
 from gevent\
     import monkey
 
 
 monkey.patch_all()
 
+
+import sys
+
+from lib.application\
+    import Application
+from packages.args\
+    import Args
+
+
+Application(Args.parse(sys.argv)).run()
 
 import json
 import sys
@@ -26,7 +32,7 @@ monkey.patch_all()
 
 
 args = Args.parse(sys.argv)
-engine = Engine().set_mode(args.arg(['m', 'mode'], 'client'))
+engine = Engine().set_storage_mode(args.arg(['m', 'mode'], 'client'))
 errors = {
     'BadArgumentError': '400 Bag Request',
     'CircularReferenceError': '409 Conflict',
@@ -38,6 +44,8 @@ errors = {
 def application(
     env, start_response
 ):
+    print env
+
     path = env['PATH_INFO'][1:].split('/')
 
     try:

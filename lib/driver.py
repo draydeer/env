@@ -29,11 +29,11 @@ class Driver:
 
 class Value(Dict):
 
+    data = None
     type = None
-    v = None
 
     def __init__(
-        self, v=None, type=None
+        self, data=None, type=None
     ):
+        self.data = data
         self.type = type
-        self.v = v

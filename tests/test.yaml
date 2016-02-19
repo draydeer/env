@@ -1,0 +1,7 @@
+---
+test_a:
+    t_a: "yaml"
+    t_b: no
+test_b:
+    t_a: "@@:env:test_a"
+    t_b: 5

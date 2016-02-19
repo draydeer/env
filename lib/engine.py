@@ -35,7 +35,7 @@ class Engine:
     ):
         return DriverHolder
 
-    def set_mode(
+    def set_storage_mode(
         self, value
     ):
         if value == 'client':
@@ -54,6 +54,13 @@ class Engine:
             return self
 
         raise BadArgumentError('unknown mode')
+
+    def set_storage_route(
+        self, pattern, driver=None
+    ):
+        self._storage.set_route(pattern, driver)
+
+        return self
 
     def event(
         self, event, value

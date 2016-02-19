@@ -1,9 +1,9 @@
 
 
-import requests
-
+from ConfigParser\
+    import ConfigParser
 from lib.driver\
-    import Driver, Value
+    import Driver
 from lib.errors\
     import NotExistsError
 
@@ -13,12 +13,13 @@ class FileIni(Driver):
     def g(
         self, k
     ):
-        result = requests.get(self._config['host'] + '/' + k + '/$')
+        data = ConfigParser()
 
-        if result.status_code == 200:
-            result = result.json()
+        data.read(self._config['file'])
 
-            if 'v' in result:
-                return Value(result['v'].get('v'), result['v'].get('type'))
+        data = {s: {k: v for (k, v) in data.items(s)} for s in data.sections()}
 
-        raise NotExistsError()
+        if k in data:
+            return data[k]
+
+        raise NotExistsError(k)

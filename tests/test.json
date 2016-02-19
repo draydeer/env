@@ -1,0 +1,10 @@
+{
+    "test_a": {
+        "t_a": "json",
+        "t_b": false
+    },
+    "test_b": {
+        "t_a": "@@:env:test_a",
+        "t_b": 5
+    }
+}

@@ -18,7 +18,7 @@ class Args(config.Config):
         for v in argv[offset:]:
             if prefix is not None:
                 if v.strip('-') != v:
-                    args[prefix] = True
+                    args[prefix] = prefix
 
                     prefix = v.strip('-')
                 else:
@@ -33,7 +33,7 @@ class Args(config.Config):
                         prefix = v.strip('-')
 
         if prefix is not None:
-            args[prefix] = True
+            args[prefix] = prefix
 
         return Args(args)
 

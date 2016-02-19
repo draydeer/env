@@ -1,9 +1,9 @@
 
 
-import requests
+import json
 
 from lib.driver\
-    import Driver, Value
+    import Driver
 from lib.errors\
     import NotExistsError
 
@@ -13,12 +13,9 @@ class FileJson(Driver):
     def g(
         self, k
     ):
-        result = requests.get(self._config['host'] + '/' + k + '/$')
+        data = json.load(open(self._config['file']))
 
-        if result.status_code == 200:
-            result = result.json()
+        if isinstance(data, dict) and k in data:
+            return data[k]
 
-            if 'v' in result:
-                return Value(result['v'].get('v'), result['v'].get('type'))
-
-        raise NotExistsError()
+        raise NotExistsError(k)
