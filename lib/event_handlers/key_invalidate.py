@@ -4,8 +4,6 @@ from lib.event_handler\
     import EventHandler
 from lib.event_handlers.types.system_file\
     import SystemFile
-from lib.event_handlers.types.system_file_alias\
-    import SystemFileAlias
 
 
 class KeyInvalidate(EventHandler):
@@ -20,7 +18,6 @@ class KeyInvalidate(EventHandler):
                 lambda x: self._engine.get_config().has('eventHandlers.keyInvalidate.' + x.alias),
                 [
                     SystemFile,
-                    SystemFileAlias,
                 ]
             )
         }

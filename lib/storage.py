@@ -97,8 +97,13 @@ class Storage:
 
         self.set_mode_keeper().set_route(Storage.DEFAULT_ROUTE_PATTERN)
 
+        # preset routes
         for k, v in engine.get_config().g('routes', {}).iteritems():
             self.set_route(k, v)
+
+        # preset keys
+        for i, k in enumerate(engine.get_config().g('keys', [])):
+            self.g(k)
 
     def set_active_driver(
         self, driver, config=None

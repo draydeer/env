@@ -7,7 +7,7 @@ from jinja2\
 from lib.type_handler\
     import TypeHandler
 from packages.p\
-    import dict_join, list_join
+    import dict_join
 
 
 class SystemFile(TypeHandler):
@@ -15,29 +15,32 @@ class SystemFile(TypeHandler):
     alias = 'systemFile'
 
     def _evaluate(
-        self, cmd=None, file=None, parameters=None, template=None, *args, **kwargs
+        self, cmd, file, parameters, template
     ):
-        if file:
-            file = open(file, 'w+')
+        file = open(file, 'w+')
 
-            file.write(Template(template).render(**parameters))
-            file.close()
+        file.write(Template(template).render(**parameters))
+        file.close()
 
-            if isinstance(cmd, list):
-                for v in cmd:
-                    if isinstance(v, str) or isinstance(v, unicode):
-                        os.system(v)
+        if isinstance(cmd, list):
+            for v in cmd:
+                if isinstance(v, str) or isinstance(v, unicode):
+                    os.system(v)
 
     def __call__(
         self, cmd=None, file=None, parameters=None, template=None, *args, **kwargs
     ):
+        if self.has_config('keys.' + file):
+            config = self.get_config('keys.' + file)
+        else:
+            config = self.get_config('default')
+
         self._evaluate(
-            self,
-            self.get_config('cmd') or cmd,
-            self.get_config('file') or file,
+            config.cmd or cmd,
+            config.file or file,
             dict_join(
-                self.get_config('parameters'),
-                parameters
+                parameters,
+                config.parameters
             ),
-            self.get_config('template') or template
+            config.template or template
         )

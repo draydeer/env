@@ -14,6 +14,8 @@ from lib.drivers.file_json\
     import FileJson
 from lib.drivers.file_yaml\
     import FileYaml
+from lib.drivers.file_txt\
+    import FileTxt
 from lib.drivers.memory\
     import Memory
 from lib.drivers.mongo\
@@ -39,6 +41,7 @@ class Holder:
         'fileIni': FileIni,
         'fileJson': FileJson,
         'fileYaml': FileYaml,
+        'fileTxt': FileTxt,
         'memory': Memory,
         'mongo': Mongo,
         'mongoReplicaSet': MongoResplicaSet,

@@ -11,12 +11,15 @@ drivers:
         user: root
 eventHandlers:
     keyInvalidate:
-        systemFileAlias:
+        systemFile:
+            default:
             keys:
                 nginx:
                     file: /usr/local/etc/nginx/servers/mysite.conf
                     parameters:
-                        root: /usr/local/dev/local/env/tests
+                        roota: /usr/local/dev/local/env/tests
+keys:
+    - system
 mode: keeper
 routes:
     b.*: mongo
