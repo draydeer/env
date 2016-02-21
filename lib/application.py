@@ -9,11 +9,14 @@ from lib.engine\
     import Engine
 from lib.errors\
     import Error
+from packages.config\
+    import Config
 
 
 class Application:
 
-    _args = None
+    _arguments = None
+    _config = None
     _engine = None
     _errors = {
         'BadArgumentError': '400 Bag Request',
@@ -58,10 +61,11 @@ class Application:
         return None
 
     def __init__(
-        self, args
+        self, args, config=None
     ):
-        self._args = args
-        self._engine = Engine().set_storage_mode(args.arg(['client', 'keeper', 'server'], 'client'))
+        self._arguments = args
+        self._config = Config(config)
+        self._engine = Engine(self._config).set_storage_mode(args.arg(['client', 'keeper', 'server'], 'client'))
 
     def run(
         self
@@ -112,7 +116,7 @@ class Application:
                     code = self._errors[e.__class__.__name__] if e.__class__.__name__ in self._errors else '500 Internal Server Error'
                     data = e.message if isinstance(e, Error) else None
 
-                    if self._args.debug:
+                    if self._arguments.debug:
                         print traceback.format_exc()
             else:
                 code = self._errors['NotExistsError']
@@ -125,4 +129,4 @@ class Application:
 
             return [json.dumps(data)]
 
-        WSGIServer(('', int(self._args.arg(['p', 'port'], 8088))), f_resp, log=None).serve_forever()
+        WSGIServer(('', int(self._arguments.arg(['p', 'port'], 8088))), f_resp, log=None).serve_forever()

@@ -15,7 +15,7 @@ class Mongo(Driver):
     ):
         self._client = MongoClient(self._config.get('host', 'localhost'))[str(self._config.get('db', 'env'))]
 
-        self._client.authenticate(str(self._config['user']), password=str(self._config['pass']))
+        self._client.authenticate(str(self._config.user), password=str(self._config.password))
 
     def g(
         self, k

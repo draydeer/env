@@ -75,7 +75,7 @@ class Holder:
     def get_default(
 
     ):
-        value = Holder.req(active_config.get('default', 'env'))
+        value = Holder.req(active_config.g('default.driver', 'env'))
 
         return value
 

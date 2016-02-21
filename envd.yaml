@@ -1,0 +1,24 @@
+---
+default:
+    driver: fileYaml
+drivers:
+    fileYaml:
+        file: /usr/local/dev/local/env/tests/test.yaml
+    mongo:
+        db: env
+        host: localhost:27017
+        password: root
+        user: root
+eventHandlers:
+    keyInvalidate:
+        systemFileAlias:
+            keys:
+                nginx:
+                    file: /usr/local/etc/nginx/servers/mysite.conf
+                    parameters:
+                        root: /usr/local/dev/local/env/tests
+mode: keeper
+routes:
+    b.*: mongo
+    i.*: mongo
+    system: mongo

@@ -61,3 +61,23 @@ class Config(dict):
         p[int(k) if isinstance(p, list) else k] = v
 
         return self
+
+    def has(
+        self, k
+    ):
+        r = self
+
+        for x in k.split('.'):
+            p = True
+
+            if isinstance(r, dict):
+                p = x in r
+                r = r.get(x)
+            elif isinstance(r, list):
+                p = x.isdigit() and len(r) > int(x)
+                r = r[int(x)] if p else None
+
+            if p is False:
+                return False
+
+        return True

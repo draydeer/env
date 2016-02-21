@@ -74,7 +74,7 @@ class Storage:
     ):
         for k, v in keys.iteritems():
             if k in self._keys:
-                self._engine.event('detach', self._keys.pop(k))
+                self._engine.event('key.detach', self._keys.pop(k))
 
     def _on_invalidate(
         self, keys
@@ -96,6 +96,9 @@ class Storage:
         self._engine = engine
 
         self.set_mode_keeper().set_route(Storage.DEFAULT_ROUTE_PATTERN)
+
+        for k, v in engine.get_config().g('routes', {}).iteritems():
+            self.set_route(k, v)
 
     def set_active_driver(
         self, driver, config=None

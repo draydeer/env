@@ -6,29 +6,34 @@ from lib.drivers.holder.holder\
     import Holder as DriverHolder
 from lib.errors\
     import BadArgumentError
-from lib.types.system_file\
-    import SystemFile
+from lib.event_handlers.key_detach \
+    import KeyDetach
+from lib.event_handlers.key_invalidate \
+    import KeyInvalidate
+from packages.config\
+    import Config
 
 
 class Engine:
 
+    _config = None
+    _event_handlers = {}
     _storage = None
 
-    handlers = {}
-
     def __init__(
-        self
+        self, config=None
     ):
+        self._config = Config(config)
+        self._event_handlers = {
+            'key.detach': KeyDetach(self),
+            'key.invalidate': KeyInvalidate(self),
+        }
         self._storage = storage.Storage(self)
 
-        self.handlers = {
-            'system.file': SystemFile(self),
-        }
-
-    def g(
-        self, k, d=None, raw=False
+    def get_config(
+        self
     ):
-        return self._storage.g(k, d, raw)
+        return self._config
 
     def get_driver_holder(
         self
@@ -63,17 +68,11 @@ class Engine:
         return self
 
     def event(
-        self, event, value
+        self, event, *args
     ):
-        handler = self.handlers.get(value.get_type())
+        return self._event_handlers[event](*args) if event in self._event_handlers else None
 
-        if handler:
-            value = value.get_value()
-
-            if isinstance(value, dict):
-                return handler(**value)
-
-            if isinstance(value, list):
-                return handler(*value)
-
-        return None
+    def g(
+        self, k, d=None, raw=False
+    ):
+        return self._storage.g(k, d, raw)

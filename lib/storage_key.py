@@ -6,8 +6,6 @@ import time
 
 from lib.driver\
     import Value
-from lib.errors\
-    import NotExistsError
 from packages.serializer\
     import Dict
 
@@ -90,9 +88,9 @@ class StorageKey(Dict):
         self
     ):
         if json.dumps(self.v.data) != json.dumps(self._old):
-            self.send_event('invalidate')
-
             self._old = self.v.data
+
+            self.send_event('key.invalidate')
 
         return self
 
