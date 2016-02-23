@@ -55,13 +55,6 @@ class StorageKey(Dict):
 
         return value
 
-    def commit(
-        self
-    ):
-        self.is_invalid = False
-
-        return self
-
     def g(
         self, k, d=None
     ):

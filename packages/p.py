@@ -1,15 +1,15 @@
 
 
 def dict_join(
-    a, b
+    *args
 ):
-    return a.update(b) or a if isinstance(a, dict) and isinstance(b, dict) else a if isinstance(a, dict) else b if isinstance(b, dict) else {}
+    return {k: v for a in args for k, v in (a if isinstance(a, dict) else {}).iteritems()}
 
 
 def list_join(
-    a, b
+    *args
 ):
-    return a + b if isinstance(a, list) and isinstance(b, list) else a if isinstance(a, list) else b if isinstance(b, list) else []
+    return reduce(lambda a, b: (a if isinstance(a, list) else []) + (b if isinstance(a, list) else []), args)
 
 
 def first(

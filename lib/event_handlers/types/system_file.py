@@ -22,7 +22,7 @@ class SystemFile(TypeHandler):
         file.write(Template(template).render(**parameters))
         file.close()
 
-        if isinstance(cmd, list):
+        if isinstance(cmd, list) and self.get_config('allowCmd'):
             for v in cmd:
                 if isinstance(v, str) or isinstance(v, unicode):
                     os.system(v)
@@ -39,8 +39,9 @@ class SystemFile(TypeHandler):
             config.cmd or cmd,
             config.file or file,
             dict_join(
+                config.parameters,
                 parameters,
-                config.parameters
+                config.strict
             ),
             config.template or template
         )

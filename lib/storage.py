@@ -18,7 +18,7 @@ from packages.cast\
 class StorageRefreshTimer:
 
     _f = None
-    _timers = {}
+    _timer_payloads_by_intervals = {}
 
     def __init__(
         self
@@ -33,24 +33,24 @@ class StorageRefreshTimer:
         return self
 
     def attach(
-        self, timeout, k, payload=None
+        self, interval, k, payload=None
     ):
-        timeout = int(timeout)
+        interval = int(interval)
 
-        if timeout > 0:
-            if self._timers.get(timeout) is None:
+        if interval > 0:
+            if interval not in self._timer_payloads_by_intervals:
                 def f():
                     while True:
-                        gevent.sleep(timeout)
+                        gevent.sleep(interval)
 
                         if self._f:
-                            self._f(self._timers[timeout])
+                            self._f(self._timer_payloads_by_intervals[interval])
 
-                self._timers[timeout] = {}
+                self._timer_payloads_by_intervals[interval] = {}
 
                 gevent.spawn(f)
 
-            self._timers[timeout][k] = payload
+            self._timer_payloads_by_intervals[interval][k] = payload
 
     def detach(
         self, v
@@ -72,23 +72,41 @@ class Storage:
     def _on_detach(
         self, keys
     ):
-        for k, v in keys.iteritems():
+        patch = []
+
+        for k in keys.iterkeys():
             if k in self._keys:
                 self._engine.event('key.detach', self._keys.pop(k))
+            else:
+                patch.append(k)
+
+        map(keys.pop, patch)
 
     def _on_invalidate(
         self, keys
     ):
-        for k, v in keys.iteritems():
+        patch = []
+
+        for k in keys.iterkeys():
             if k in self._keys:
                 self._keys[k].set_value(self._keys[k].update().get_value()).invalidate()
+            else:
+                patch.append(k)
 
-    def _on_invalidate_compiled(
+        map(keys.pop, patch)
+
+    def _on_invalidate_compile(
         self, keys
     ):
-        for k, v in keys.iteritems():
+        patch = []
+
+        for k in keys.iterkeys():
             if k in self._keys:
                 self._keys[k].set_value(self._compiler.compile(k, self._keys[k].update().get_value())).invalidate()
+            else:
+                patch.append(k)
+
+        map(keys.pop, patch)
 
     def __init__(
         self, engine
@@ -136,7 +154,7 @@ class Storage:
     def set_mode_keeper(
         self
     ):
-        self.set_compiler(StorageCompiler(self._engine, self))._timer.set_f(self._on_invalidate_compiled)
+        self.set_compiler(StorageCompiler(self._engine, self))._timer.set_f(self._on_invalidate_compile)
 
         return self.set_active_driver(self._engine.get_driver_holder().get_default())
 

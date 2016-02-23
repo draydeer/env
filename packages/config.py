@@ -12,11 +12,6 @@ class Config(dict):
 
         super(Config, self).__init__(d)
 
-    def __missing__(
-        self, k
-    ):
-        return None
-
     def __getattr__(
         self, k
     ):
