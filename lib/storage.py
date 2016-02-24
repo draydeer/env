@@ -74,7 +74,7 @@ class Storage:
     ):
         patch = []
 
-        for k in keys.iterkeys():
+        for k in list(keys.keys()):
             if k in self._keys:
                 self._engine.event('key.detach', self._keys.pop(k))
             else:
@@ -87,7 +87,7 @@ class Storage:
     ):
         patch = []
 
-        for k in keys.iterkeys():
+        for k in list(keys.keys()):
             if k in self._keys:
                 self._keys[k].set_value(self._keys[k].update().get_value()).invalidate()
             else:
@@ -100,7 +100,7 @@ class Storage:
     ):
         patch = []
 
-        for k in keys.iterkeys():
+        for k in list(keys.keys()):
             if k in self._keys:
                 self._keys[k].set_value(self._compiler.compile(k, self._keys[k].update().get_value())).invalidate()
             else:

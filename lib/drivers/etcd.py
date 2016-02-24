@@ -1,5 +1,7 @@
 
 
+import requests
+
 from lib.driver\
     import Driver
 

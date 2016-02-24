@@ -21,7 +21,10 @@ class Env(Driver):
     def g(
         self, k
     ):
-        result = requests.request('INFO', self._config['host'] + '/' + k)
+        result = requests.request(
+            'INFO',
+            self._config['host'] + '/' + k
+        )
 
         if result.status_code == 200:
             result = result.json()

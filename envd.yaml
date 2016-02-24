@@ -1,9 +1,14 @@
 ---
 default:
-    driver: fileYaml
+    driver: memory
 drivers:
+    consul:
+        recurse: yes
     fileYaml:
         file: /usr/local/dev/local/env/tests/test.yaml
+    memory:
+        values:
+            k: '@@:env:web/key1'
     mongo:
         db: env
         host: localhost:27017
@@ -25,3 +30,4 @@ routes:
     b.*: mongo
     i.*: mongo
     system: mongo
+    web*: consul
