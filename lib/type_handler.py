@@ -1,9 +1,9 @@
 
 
-from lib.engine_module\
-    import EngineModule
-from packages.config\
-    import Config
+from lib.engine_module import\
+     EngineModule
+from packages.config import\
+     Config
 
 
 class TypeHandler(EngineModule):

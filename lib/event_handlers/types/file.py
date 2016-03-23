@@ -2,15 +2,15 @@
 
 import os
 
-from jinja2\
-    import Template
-from lib.type_handler\
-    import TypeHandler
-from packages.p\
-    import dict_join
+from jinja2 import\
+     Template
+from lib.type_handler import\
+     TypeHandler
+from packages.p import\
+     dict_join
 
 
-class SystemFile(TypeHandler):
+class File(TypeHandler):
 
     alias = 'systemFile'
 

@@ -1,9 +1,9 @@
 
 
-from lib.driver\
-    import Driver
-from lib.errors\
-    import NotExistsError
+from lib.driver import\
+     Driver
+from lib.errors import\
+     NotExistsError
 
 
 class Memory(Driver):

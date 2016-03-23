@@ -1,7 +1,7 @@
 
 
-from lib.type_handler\
-    import TypeHandler
+from lib.type_handler import\
+     TypeHandler
 
 
 class SystemFile(TypeHandler):

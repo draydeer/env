@@ -3,23 +3,24 @@
 import json
 import time
 
+from lib.driver import\
+     Value
+from packages.serializer import\
+     Dict
 
-from lib.driver\
-    import Value
-from packages.serializer\
-    import Dict
 
-
-class StorageKey(Dict):
+class StorageRootKey(Dict):
 
     _decryption_key = None
     _driver = None
     _engine = None
     _old = None
 
+    error = False
     k = None
     is_invalid = False
     last_sync = None
+    prefix = None
     requested = 0
     type = None
     v = Value()
@@ -33,6 +34,20 @@ class StorageKey(Dict):
         self.k = k
 
         self.update(True)
+
+    def set_alias(
+        self, value
+    ):
+        self.alias = value
+
+        return self
+
+    def set_error(
+        self, value
+    ):
+        self.error = value
+
+        return self
 
     def get_value(
         self
@@ -55,8 +70,15 @@ class StorageKey(Dict):
 
         return value
 
+    def event(
+        self, event
+    ):
+        self._engine.event(event, self)
+
+        return self
+
     def g(
-        self, k, d=None
+        self, k, default=None
     ):
         self.requested += 1
 
@@ -73,7 +95,7 @@ class StorageKey(Dict):
 
                 continue
 
-            return d
+            return default
 
         return r
 
@@ -83,14 +105,7 @@ class StorageKey(Dict):
         if json.dumps(self.v.data) != json.dumps(self._old):
             self._old = self.v.data
 
-            self.send_event('key.invalidate')
-
-        return self
-
-    def send_event(
-        self, event
-    ):
-        self._engine.event(event, self)
+            self.event('key.invalidate')
 
         return self
 
@@ -101,6 +116,8 @@ class StorageKey(Dict):
             try:
                 self.set_value(self._driver.g(self.k))
             except BaseException as e:
+                self.error = True
+
                 if throw:
                     raise e
 

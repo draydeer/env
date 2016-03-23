@@ -1,11 +1,11 @@
 
 
-from ConfigParser\
-    import ConfigParser
-from lib.driver\
-    import Driver
-from lib.errors\
-    import NotExistsError
+from ConfigParser import\
+     ConfigParser
+from lib.driver import\
+     Driver
+from lib.errors import\
+     NotExistsError
 
 
 class FileIni(Driver):

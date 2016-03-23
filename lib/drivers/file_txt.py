@@ -1,7 +1,7 @@
 
 
-from lib.driver\
-    import Driver
+from lib.driver import\
+     Driver
 
 
 class FileTxt(Driver):

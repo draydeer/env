@@ -1,7 +1,7 @@
 
 
-from packages.serializer\
-    import Dict
+from packages.serializer import\
+     Dict
 
 
 class Driver:

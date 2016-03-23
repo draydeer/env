@@ -1,7 +1,7 @@
 
 
-from lib.engine_module\
-    import EngineModule
+from lib.engine_module import\
+     EngineModule
 
 
 class EventHandler(EngineModule):

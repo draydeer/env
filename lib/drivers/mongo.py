@@ -1,11 +1,11 @@
 
 
-from pymongo\
-    import MongoClient
-from lib.driver\
-    import Driver, Value
-from lib.errors\
-    import NotExistsError
+from pymongo import\
+     MongoClient
+from lib.driver import\
+     Driver, Value
+from lib.errors import\
+     NotExistsError
 
 
 class Mongo(Driver):

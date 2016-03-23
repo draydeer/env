@@ -3,14 +3,16 @@
 import json
 import traceback
 
-from gevent.pywsgi\
-    import WSGIServer
-from lib.engine\
-    import Engine
-from lib.errors\
-    import Error
-from packages.config\
-    import Config
+from gevent.pywsgi import\
+     WSGIServer
+from lib.engine import\
+     Engine
+from lib.errors import\
+     Error
+from packages.config import\
+     Config
+from packages.logger import\
+     logger
 
 
 class Application:
@@ -70,6 +72,12 @@ class Application:
     def run(
         self
     ):
+        logger\
+            .splitter()\
+            .indented('Envd, version 0.1a')\
+            .splitter()\
+            .info('Mode: ' + self._arguments.arg(['client', 'keeper', 'server'], 'client'))
+
         routes = {
             'DELETE': [
                 self._on_route_delete,
@@ -117,7 +125,7 @@ class Application:
                     data = e.message if isinstance(e, Error) else None
 
                     if self._arguments.debug:
-                        print traceback.format_exc()
+                        traceback.print_exc()
             else:
                 code = self._errors['NotExistsError']
                 data = None
@@ -129,4 +137,13 @@ class Application:
 
             return [json.dumps(data)]
 
-        WSGIServer(('', int(self._arguments.arg(['p', 'port'], 8088))), f_resp, log=None).serve_forever()
+        bind = self._arguments.arg('bind', '127.0.0.1')
+        port = int(self._arguments.arg(['p', 'port'], 8088))
+
+        logger.warning('Server is up and running on: ' + bind + ':' + str(port))
+
+        WSGIServer(
+            (bind, port),
+            f_resp,
+            log=None
+        ).serve_forever()

@@ -1,9 +1,9 @@
 
 
-from lib.event_handler\
-    import EventHandler
-from lib.event_handlers.types.system_file\
-    import SystemFile
+from lib.event_handler import\
+     EventHandler
+from lib.event_handlers.types.file import\
+     File
 
 
 class KeyInvalidate(EventHandler):
@@ -17,7 +17,7 @@ class KeyInvalidate(EventHandler):
             v.alias: v(self._engine) for v in filter(
                 lambda x: self._engine.get_config().has('eventHandlers.keyInvalidate.' + x.alias),
                 [
-                    SystemFile,
+                    File,
                 ]
             )
         }

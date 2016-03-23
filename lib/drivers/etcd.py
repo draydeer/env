@@ -2,8 +2,8 @@
 
 import requests
 
-from lib.driver\
-    import Driver
+from lib.driver import\
+     Driver
 
 
 class Etcd(Driver):

@@ -2,16 +2,16 @@
 
 import storage
 
-from lib.drivers.holder.holder\
-    import Holder as DriverHolder
-from lib.errors\
-    import BadArgumentError
-from lib.event_handlers.key_detach \
-    import KeyDetach
-from lib.event_handlers.key_invalidate \
-    import KeyInvalidate
-from packages.config\
-    import Config
+from lib.drivers.holder.holder import\
+     Holder as DriverHolder
+from lib.errors import\
+     BadArgumentError
+from lib.event_handlers.key_detach  import\
+     KeyDetach
+from lib.event_handlers.key_invalidate  import\
+     KeyInvalidate
+from packages.config import\
+     Config
 
 
 class Engine:

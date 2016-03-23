@@ -16,7 +16,7 @@ drivers:
         user: root
 eventHandlers:
     keyInvalidate:
-        systemFile:
+        file:
             default:
             keys:
                 nginx:
@@ -31,3 +31,6 @@ routes:
     i.*: mongo
     system: mongo
     web*: consul
+    a:
+        driver: mongo
+        projection: base

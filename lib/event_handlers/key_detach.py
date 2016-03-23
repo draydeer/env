@@ -1,7 +1,7 @@
 
 
-from lib.event_handler\
-    import EventHandler
+from lib.event_handler import\
+     EventHandler
 
 
 class KeyDetach(EventHandler):

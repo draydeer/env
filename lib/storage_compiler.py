@@ -2,10 +2,10 @@
 
 import os
 
-from lib.engine_module\
-    import EngineModule
-from lib.errors\
-    import CircularReferenceError
+from lib.engine_module import\
+     EngineModule
+from lib.errors import\
+     CircularReferenceError
 
 
 class StorageCompiler(EngineModule):

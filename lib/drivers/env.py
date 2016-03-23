@@ -2,10 +2,10 @@
 
 import requests
 
-from lib.driver\
-    import Driver, Value
-from lib.errors\
-    import BadArgumentError, ConflictError, InternalError, NotExistsError
+from lib.driver import\
+     Driver, Value
+from lib.errors import\
+     BadArgumentError, ConflictError, InternalError, NotExistsError
 
 
 errors = {

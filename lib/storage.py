@@ -3,16 +3,18 @@
 import gevent
 import re
 
-from lib.errors\
-    import BadArgumentError, NotExistsError
-from lib.storage_compiler\
-    import StorageCompiler
-from lib.storage_route\
-    import StorageRoute
-from lib.storage_key\
-    import StorageKey
-from packages.cast\
-    import try_type
+from lib.errors import\
+     BadArgumentError, NotExistsError
+from lib.storage_compiler import\
+     StorageCompiler
+from lib.storage_route import\
+     StorageRoute
+from lib.storage_root_key import\
+     StorageRootKey
+from packages.cast import\
+     try_type
+from packages.logger import\
+     logger
 
 
 class StorageRefreshTimer:
@@ -73,40 +75,55 @@ class Storage:
         self, keys
     ):
         patch = []
+        total = 0
 
         for k in list(keys.keys()):
             if k in self._keys:
                 self._engine.event('key.detach', self._keys.pop(k))
+
+                total += 1
             else:
                 patch.append(k)
 
         map(keys.pop, patch)
+
+        logger.info('Keys pruned: ' + str(total))
 
     def _on_invalidate(
         self, keys
     ):
         patch = []
+        total = 0
 
         for k in list(keys.keys()):
             if k in self._keys:
                 self._keys[k].set_value(self._keys[k].update().get_value()).invalidate()
+
+                total += 1
             else:
                 patch.append(k)
 
         map(keys.pop, patch)
+
+        logger.info('Keys updated: ' + str(total))
 
     def _on_invalidate_compile(
         self, keys
     ):
         patch = []
+        total = 0
 
         for k in list(keys.keys()):
             if k in self._keys:
                 self._keys[k].set_value(self._compiler.compile(k, self._keys[k].update().get_value())).invalidate()
+
+                total += 1
             else:
                 patch.append(k)
 
         map(keys.pop, patch)
+
+        logger.info('Keys updated: ' + str(total))
 
     def __init__(
         self, engine
@@ -117,7 +134,7 @@ class Storage:
 
         # preset routes
         for k, v in engine.get_config().g('routes', {}).iteritems():
-            self.set_route(k, v)
+            self.set_route(k, v.get('driver'), v.get('projection')) if isinstance(v, dict) else self.set_route(k, v)
 
         # preset keys
         for i, k in enumerate(engine.get_config().g('keys', [])):
@@ -138,9 +155,15 @@ class Storage:
         return self
 
     def set_route(
-        self, pattern, driver=None
+        self, pattern, driver=None, projection=None
     ):
-        self._key_routes[pattern] = [re.compile(pattern), StorageRoute(self._engine.get_driver_holder().req(driver) if driver else self._active_driver)]
+        self._key_routes[pattern] = [
+            re.compile(pattern),
+            StorageRoute(
+                self._engine.get_driver_holder().req(driver) if driver else self._active_driver,
+                projection
+            )
+        ]
 
         return self
 
@@ -198,7 +221,9 @@ class Storage:
                         else:
                             self._timer.attach(60, k[0])
 
-                        storage_key = StorageKey(self._engine, k[0], route.driver, decryption_key=decryption_key)
+                        storage_key = StorageRootKey(
+                            self._engine, route.projection or k[0], route.driver, decryption_key=decryption_key
+                        )
 
                         if self._compiler:
                             storage_key.set_value(self._compiler.compile(k[0], storage_key.get_value()))
