@@ -15,7 +15,7 @@ class KeyInvalidate(EventHandler):
     ):
         self._types = {
             v.alias: v(self._engine) for v in filter(
-                lambda x: self._engine.get_config().has('eventHandlers.keyInvalidate.' + x.alias),
+                lambda x: self._engine.config.has('eventHandlers.keyInvalidate.' + x.alias),
                 [
                     File,
                 ]

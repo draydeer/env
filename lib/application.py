@@ -45,7 +45,10 @@ class Application:
     def _on_route_info(
         self, path
     ):
-        return self._engine.g(path, None, True)
+        if path == '':
+            pass
+        else:
+            return self._engine.g(path, None, True)
 
     def _on_route_patch(
         self, path
@@ -89,7 +92,7 @@ class Application:
             ],
             'INFO': [
                 self._on_route_info,
-                1
+                0
             ],
             'PATCH': [
                 self._on_route_patch,

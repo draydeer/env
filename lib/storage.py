@@ -4,17 +4,19 @@ import gevent
 import re
 
 from lib.errors import\
-     BadArgumentError, NotExistsError
+    BadArgumentError, NotExistsError
+from engine_module import\
+    EngineModule
 from lib.storage_compiler import\
-     StorageCompiler
+    StorageCompiler
 from lib.storage_route import\
-     StorageRoute
+    StorageRoute
 from lib.storage_root_key import\
-     StorageRootKey
+    StorageRootKey
 from packages.cast import\
-     try_type
+    try_type
 from packages.logger import\
-     logger
+    logger
 
 
 class StorageRefreshTimer:
@@ -60,7 +62,7 @@ class StorageRefreshTimer:
         pass
 
 
-class Storage:
+class Storage(EngineModule):
 
     DEFAULT_ROUTE_PATTERN = '.*'
 
@@ -128,16 +130,16 @@ class Storage:
     def __init__(
         self, engine
     ):
-        self._engine = engine
+        EngineModule.__init__(self, engine)
 
         self.set_mode_keeper().set_route(Storage.DEFAULT_ROUTE_PATTERN)
 
         # preset routes
-        for k, v in engine.get_config().g('routes', {}).iteritems():
+        for k, v in engine.config.g('routes', {}).iteritems():
             self.set_route(k, v.get('driver'), v.get('projection')) if isinstance(v, dict) else self.set_route(k, v)
 
         # preset keys
-        for i, k in enumerate(engine.get_config().g('keys', [])):
+        for i, k in enumerate(engine.config.g('keys', [])):
             self.g(k)
 
     def set_active_driver(

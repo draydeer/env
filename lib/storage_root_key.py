@@ -5,11 +5,13 @@ import time
 
 from lib.driver import\
      Value
+from lib.engine_module import\
+    EngineModule
 from packages.serializer import\
      Dict
 
 
-class StorageRootKey(Dict):
+class StorageRootKey(EngineModule, Dict):
 
     _decryption_key = None
     _driver = None
@@ -28,9 +30,10 @@ class StorageRootKey(Dict):
     def __init__(
         self, engine, k, driver, decryption_key=None
     ):
+        EngineModule.__init__(self, engine)
+
         self._decryption_key = decryption_key
         self._driver = driver
-        self._engine = engine
         self.k = k
 
         self.update(True)

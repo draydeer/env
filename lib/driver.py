@@ -1,25 +1,19 @@
 
 
+from lib.configurable import\
+    Configurable
 from packages.serializer import\
      Dict
 
 
-class Driver:
+class Driver(Configurable):
 
     _client = None
-    _config = None
-
-    def _on_init(
-        self
-    ):
-        pass
 
     def __init__(
-        self, config
+        self, config=None
     ):
-        self._config = config
-
-        self._on_init()
+        Configurable.__init__(self, config)
 
     def g(
         self, k

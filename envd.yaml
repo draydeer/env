@@ -1,9 +1,12 @@
 ---
+clientId: 12345
 default:
     driver: memory
 drivers:
     consul:
         recurse: yes
+    env:
+        host: localhost
     fileYaml:
         file: /usr/local/dev/local/env/tests/test.yaml
     memory:
@@ -23,6 +26,9 @@ eventHandlers:
                     file: /usr/local/etc/nginx/servers/mysite.conf
                     parameters:
                         roota: /usr/local/dev/local/env/tests
+forum:
+    servers:
+        - http://localhost:7334
 keys:
     - system
 mode: keeper

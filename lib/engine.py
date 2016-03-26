@@ -1,39 +1,90 @@
 
 
-import storage
+import configurable
+import time
 
 from lib.drivers.holder.holder import\
-     Holder as DriverHolder
+    Holder as DriverHolder
 from lib.errors import\
-     BadArgumentError
-from lib.event_handlers.key_detach  import\
-     KeyDetach
-from lib.event_handlers.key_invalidate  import\
-     KeyInvalidate
-from packages.config import\
-     Config
+    BadArgumentError
+from lib.event_handlers.key_detach import\
+    KeyDetach
+from lib.event_handlers.key_invalidate import\
+    KeyInvalidate
+from lib.forum import\
+    Forum
+from lib.storage import\
+    Storage
+from packages.logger import\
+    logger
 
 
-class Engine:
+class Engine(configurable.Configurable):
 
-    _config = None
+    VERSION = 1.0
+
     _event_handlers = {}
+    _forum = None
     _storage = None
+    _time_start = None
 
     def __init__(
         self, config=None
     ):
-        self._config = Config(config)
-        self._event_handlers = {
-            'key.detach': KeyDetach(self),
-            'key.invalidate': KeyInvalidate(self),
-        }
-        self._storage = storage.Storage(self)
+        configurable.Configurable.__init__(self, config)
 
-    def get_config(
+        self._event_handlers = {'key.detach': KeyDetach(self), 'key.invalidate': KeyInvalidate(self)}
+        self._forum = Forum(self, self.config.g('forum.servers', []), self.config.g('forum.announceInterval', 60))
+        self._storage = Storage(self)
+        self._time_start = time.time()
+
+    @property
+    def alive(
         self
     ):
-        return self._config
+        return True
+
+    @property
+    def client_id(
+        self
+    ):
+        return self._config.get('clientId')
+
+    @property
+    def forum(
+        self
+    ):
+        return self._forum
+
+    @property
+    def logger(
+        self
+    ):
+        return logger
+
+    @property
+    def mode(
+        self
+    ):
+        return logger
+
+    @property
+    def storage(
+        self
+    ):
+        return self._storage
+
+    @property
+    def time_start(
+        self
+    ):
+        return self._time_start
+
+    @property
+    def version(
+        self
+    ):
+        return Engine.VERSION
 
     def get_driver_holder(
         self

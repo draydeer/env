@@ -1,6 +1,10 @@
 
 
-class EngineModule:
+from lib.event_emitter import\
+    Ee
+
+
+class EngineModule(Ee):
 
     _engine = None
 
@@ -17,3 +21,15 @@ class EngineModule:
         self._engine = engine
 
         self._on_init()
+
+    @property
+    def alive(
+        self
+    ):
+        return self._engine.alive
+
+    @property
+    def logger(
+        self
+    ):
+        return self._engine.logger
