@@ -1,19 +1,21 @@
 
 
+import const
 import json
 import traceback
 
 from gevent.pywsgi import\
-     WSGIServer
+    WSGIServer
 from lib.engine import\
-     Engine
+    Engine
 from lib.errors import\
-     Error
+    Error
 from packages.config import\
-     Config
+    Config
 from packages.logger import\
-     logger
-
+    logger
+from packages.wsgi_body import\
+    WsgiBody
 
 class Application:
 
@@ -33,35 +35,39 @@ class Application:
         return None if value == '' else value
 
     def _on_route_delete(
-        self, path
+        self, env, path
     ):
         return None
 
     def _on_route_get(
-        self, path
+        self, env, path
     ):
         return self._engine.g(path)
 
     def _on_route_info(
-        self, path
+        self, env, path
     ):
         if path == '':
-            pass
+            return self._engine.socium.enter_host_scheme(
+                env.get('REMOTE_ADDR'),
+                WsgiBody.read(env),
+                env.get('wsgi.url_scheme', 'http')
+            ).descriptor
         else:
             return self._engine.g(path, None, True)
 
     def _on_route_patch(
-        self, path
+        self, env, path
     ):
         return None
 
     def _on_route_post(
-        self, pattern, driver=None
+        self, env, pattern, driver=None
     ):
         self._engine.set_storage_route(pattern, self._as_none(driver))
 
     def _on_route_put(
-        self
+        self, env
     ):
         return None
 
@@ -115,11 +121,11 @@ class Application:
 
             if route:
                 try:
-                    data = env['PATH_INFO'][1:].split('/')
+                    path = env['PATH_INFO'][1:].split('/')
 
-                    if len(data) >= route[1]:
+                    if len(path) >= route[1]:
                         code = '200 OK'
-                        data = route[0](*data)
+                        data = route[0](env, *path)
                     else:
                         code = self._errors['BadArgumentError']
                         data = None
@@ -140,8 +146,8 @@ class Application:
 
             return [json.dumps(data)]
 
-        bind = self._arguments.arg('bind', '127.0.0.1')
-        port = int(self._arguments.arg(['p', 'port'], 8088))
+        bind = self._arguments.arg('bind', const.BIND)
+        port = int(self._arguments.arg(['p', 'port'], int(const.PORT)))
 
         logger.warning('Server is up and running on: ' + bind + ':' + str(port))
 

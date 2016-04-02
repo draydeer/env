@@ -1,0 +1,5 @@
+
+
+BIND = '127.0.0.1'
+PORT = '18202'
+SOCIUM_MIN_KNOWN = 3

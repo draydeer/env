@@ -1,6 +1,7 @@
 
 
 import configurable
+import const
 import time
 
 from lib.drivers.holder.holder import\
@@ -11,8 +12,8 @@ from lib.event_handlers.key_detach import\
     KeyDetach
 from lib.event_handlers.key_invalidate import\
     KeyInvalidate
-from lib.forum import\
-    Forum
+from lib.socium import\
+    Socium
 from lib.storage import\
     Storage
 from packages.logger import\
@@ -24,7 +25,7 @@ class Engine(configurable.Configurable):
     VERSION = 1.0
 
     _event_handlers = {}
-    _forum = None
+    _socium = None
     _storage = None
     _time_start = None
 
@@ -34,7 +35,7 @@ class Engine(configurable.Configurable):
         configurable.Configurable.__init__(self, config)
 
         self._event_handlers = {'key.detach': KeyDetach(self), 'key.invalidate': KeyInvalidate(self)}
-        self._forum = Forum(self, self.config.g('forum.servers', []), self.config.g('forum.announceInterval', 60))
+        self._socium = Socium(self, self.config.g('socium.members', []), self.config.g('socium.announceInterval', 60))
         self._storage = Storage(self)
         self._time_start = time.time()
 
@@ -51,12 +52,6 @@ class Engine(configurable.Configurable):
         return self._config.get('clientId')
 
     @property
-    def forum(
-        self
-    ):
-        return self._forum
-
-    @property
     def logger(
         self
     ):
@@ -67,6 +62,12 @@ class Engine(configurable.Configurable):
         self
     ):
         return logger
+
+    @property
+    def socium(
+        self
+    ):
+        return self._socium
 
     @property
     def storage(
@@ -115,6 +116,13 @@ class Engine(configurable.Configurable):
         self, pattern, driver=None
     ):
         self._storage.set_route(pattern, driver)
+
+        return self
+
+    def set_member_port(
+        self, value=const.PORT
+    ):
+        self._socium.set_port(value)
 
         return self
 

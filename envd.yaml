@@ -26,9 +26,6 @@ eventHandlers:
                     file: /usr/local/etc/nginx/servers/mysite.conf
                     parameters:
                         roota: /usr/local/dev/local/env/tests
-forum:
-    servers:
-        - http://localhost:7334
 keys:
     - system
 mode: keeper
@@ -40,3 +37,6 @@ routes:
     a:
         driver: mongo
         projection: base
+socium:
+    members:
+        - http://localhost:7334
