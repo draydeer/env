@@ -18,7 +18,6 @@ errors = {
 
 class Env(Driver):
 
-    _client_id = None
     _remote = None
 
     def _on_init(
@@ -26,12 +25,7 @@ class Env(Driver):
     ):
         self._remote = self._config['host']
 
-    def set_client_id(
-        self, value
-    ):
-        self._client_id = value
-
-        return self
+        self.event_subscribe('socium_populate')
 
     def set_remote(
         self, value
@@ -45,7 +39,10 @@ class Env(Driver):
     ):
         result = requests.request(
             'INFO',
-            self._remote + '/' + k
+            self._remote + '/' + k,
+            params={
+                'clientId': self._engine.client_id
+            }
         )
 
         if result.status_code == 200:
@@ -57,3 +54,11 @@ class Env(Driver):
                 raise InternalError('corrupted data')
 
         raise errors[result.status_code](result.json()) if result.status_code in errors else InternalError()
+
+    def on_socium_populate(
+        self
+    ):
+
+        # if remote left select new one
+        if self._engine.socium.has(self._remote) is False:
+            self._remote = self._engine.socium.select()

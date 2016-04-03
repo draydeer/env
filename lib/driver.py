@@ -2,18 +2,21 @@
 
 from lib.configurable import\
     Configurable
+from lib.engine_module import\
+    EngineModule
 from packages.serializer import\
-     Dict
+    Dict
 
 
-class Driver(Configurable):
+class Driver(Configurable, EngineModule):
 
     _client = None
 
     def __init__(
-        self, config=None
+        self, engine, config=None
     ):
         Configurable.__init__(self, config)
+        EngineModule.__init__(self, engine)
 
     def g(
         self, k

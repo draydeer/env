@@ -6,6 +6,8 @@ import requests
 
 from lib.engine_module import\
     EngineModule
+from lib.errors import\
+    InternalError
 from random import\
     sample
 
@@ -140,13 +142,16 @@ class Socium(EngineModule):
             self.logger.info('On look for new members...')
 
             for member in self._members.itervalues():
-                if len(self._members) >= const.SOCIUM_MIN_KNOWN:
-                    break
 
-                # look for new member among his friends
+                # look for unknown member among his friends
                 for friend in member.friends:
                     if friend not in self._members:
                         self.enter(friend)
+
+                    if len(self._members) >= const.SOCIUM_MIN_KNOWN:
+                        break
+
+        self.event('on_socium_populate')
 
         return self
 
@@ -164,6 +169,11 @@ class Socium(EngineModule):
 
         return self.enter(scheme + '://' + member.key, member)
 
+    def has(
+        self, k
+    ):
+        return k in self._members
+
     def leave(
         self, k
     ):
@@ -174,6 +184,9 @@ class Socium(EngineModule):
     def select(
         self
     ):
+        if len(self._members) == 0:
+            raise InternalError('no members to select')
+
         k = sample(self._members, 1)[0]
 
         return k

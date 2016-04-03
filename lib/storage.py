@@ -145,7 +145,7 @@ class Storage(EngineModule):
     def set_active_driver(
         self, driver, config=None
     ):
-        self._active_driver = self._engine.get_driver_holder().req(driver, config) if isinstance(driver, str) else driver
+        self._active_driver = self._engine.get_driver_holder().req(driver, self._engine, config) if isinstance(driver, str) else driver
 
         return self
 
@@ -162,7 +162,7 @@ class Storage(EngineModule):
         self._key_routes[pattern] = [
             re.compile(pattern),
             StorageRoute(
-                self._engine.get_driver_holder().req(driver) if driver else self._active_driver,
+                self._engine.get_driver_holder().req(driver, self._engine) if driver else self._active_driver,
                 projection
             )
         ]
@@ -181,7 +181,7 @@ class Storage(EngineModule):
     ):
         self.set_compiler(StorageCompiler(self._engine, self))._timer.set_f(self._on_invalidate_compile)
 
-        return self.set_active_driver(self._engine.get_driver_holder().get_default())
+        return self.set_active_driver(self._engine.get_driver_holder().get_default(self._engine))
 
     def set_mode_server(
         self

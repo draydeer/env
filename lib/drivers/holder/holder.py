@@ -76,15 +76,15 @@ class Holder:
 
     @staticmethod
     def get_default(
-
+        engine
     ):
-        value = Holder.req(active_config.g('default.driver', 'env'))
+        value = Holder.req(active_config.g('default.driver', 'env'), engine)
 
         return value
 
     @staticmethod
     def req(
-        alias, config=None
+        alias, engine, config=None
     ):
         if Holder.has(alias):
             return Holder.get(alias)
@@ -93,6 +93,6 @@ class Holder:
             config = active_config['drivers'][alias] if alias in active_config['drivers'] else None
 
         if config and config.get('initiator', alias) in Holder.initiators:
-            return Holder.set(alias, Holder.initiators[config.get('initiator', alias)](config))
+            return Holder.set(alias, Holder.initiators[config.get('initiator', alias)](engine, config))
 
         raise NotExistsError('driver not exists: ' + alias)
