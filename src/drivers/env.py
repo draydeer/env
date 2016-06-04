@@ -18,23 +18,17 @@ class Env(Driver):
 
     _remote = None
 
-    def _on_init(
-        self
-    ):
+    def _on_init(self):
         self._remote = self._config['host']
 
-        self.event_subscribe('socium_populate')
+        self.event_subscribe('society_populate')
 
-    def set_remote(
-        self, value
-    ):
+    def set_remote(self, value):
         self._remote = value
 
         return self
 
-    def g(
-        self, k
-    ):
+    def g(self, k):
         result = requests.request(
             'INFO',
             self._remote + '/' + k,
@@ -49,14 +43,12 @@ class Env(Driver):
             if 'v' in result:
                 return Value(result['v'].get('v'), result['v'].get('type'))
             else:
-                raise InternalError('corrupted data')
+                raise InternalError('Corrupted data.')
 
         raise errors[result.status_code](result.json()) if result.status_code in errors else InternalError()
 
-    def on_socium_populate(
-        self
-    ):
+    def on_society_populate(self):
 
         # if remote left select new one
-        if self._engine.socium.has(self._remote) is False:
-            self._remote = self._engine.socium.select()
+        if self._engine.society.has(self._remote) is False:
+            self._remote = self._engine.society.select()

@@ -2,9 +2,7 @@
 
 class Config(dict):
 
-    def __init__(
-        self, d=None
-    ):
+    def __init__(self, d=None):
         if isinstance(d, dict) is False:
             d = {}
         else:
@@ -12,14 +10,21 @@ class Config(dict):
 
         super(Config, self).__init__(d)
 
-    def __getattr__(
-        self, k
-    ):
+    def __getattr__(self, k):
         return self.g(k)
 
-    def g(
-        self, k, d=None
-    ):
+    def __getitem__(self, k):
+        return self.g(k)
+
+    def g(self, k, default=None):
+        """
+        Get nested value by key. If no key reached returns [default].
+
+        :param k: Key or path. Can be "dotted" for nested key ("a.b.c").
+        :param default: Default value if key not exists.
+        :return:
+        """
+
         r = self
 
         for x in k.split('.'):
@@ -33,13 +38,19 @@ class Config(dict):
 
                 continue
 
-            return d
+            return default
 
         return r
 
-    def s(
-        self, k, v
-    ):
+    def s(self, k, v):
+        """
+        Set nested value.
+
+        :param k: Key or path. Can be "dotted" for nested key ("a.b.c").
+        :param v: Value.
+        :return:
+        """
+
         p = r = self
 
         for k in k.split('.'):
@@ -57,9 +68,15 @@ class Config(dict):
 
         return self
 
-    def has(
-        self, k
-    ):
+    def has(self, k, exists_value=True):
+        """
+        Check for key existence.
+
+        :param k: Key or path. Can be "dotted" for nested key ("a.b.c").
+        :param exists_value: Value to return if key exists.
+        :return:
+        """
+
         r = self
 
         for x in k.split('.'):
@@ -75,4 +92,4 @@ class Config(dict):
             if p is False:
                 return False
 
-        return True
+        return exists_value

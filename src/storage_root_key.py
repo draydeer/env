@@ -11,6 +11,7 @@ from packages.serializer import Dict
 class StorageRootKey(EngineModule, Dict):
 
     _decryption_key = None
+    _decryptor = None
     _driver = None
     _engine = None
     _old = None
@@ -24,62 +25,47 @@ class StorageRootKey(EngineModule, Dict):
     type = None
     v = Value()
 
-    def __init__(
-        self, engine, k, driver, decryption_key=None
-    ):
+    def __init__(self, engine, k, driver, decryption_key=None, decryptor='aesBase64'):
         EngineModule.__init__(self, engine)
 
         self._decryption_key = decryption_key
+        self._decryptor = decryptor
         self._driver = driver
         self.k = k
 
         self.update(True)
 
-    def set_alias(
-        self, value
-    ):
+    def set_alias(self, value):
         self.alias = value
 
         return self
 
-    def set_error(
-        self, value
-    ):
+    def set_error(self, value):
         self.error = value
 
         return self
 
-    def get_value(
-        self
-    ):
+    def get_value(self):
         value = self.v.data
 
         return value
 
-    def set_value(
-        self, value=None, type=None
-    ):
-        self.v = value if isinstance(value, Value) else Value(value, self.v.type if type is None else type)
+    def set_value(self, value=None, value_type=None):
+        self.v = value if isinstance(value, Value) else Value(value, self.v.type if value_type is None else value_type)
 
         return self
 
-    def get_type(
-        self
-    ):
+    def get_type(self):
         value = self.v.type
 
         return value
 
-    def event(
-        self, event
-    ):
-        self._engine.event(event, self)
+    def event(self, event, *args, **kwargs):
+        self._engine.event(event, self, *args, **kwargs)
 
         return self
 
-    def g(
-        self, k, default=None
-    ):
+    def g(self, k, default=None, decryption_key=None, decryptor=None):
         self.requested += 1
 
         r = self.v.data
@@ -97,11 +83,19 @@ class StorageRootKey(EngineModule, Dict):
 
             return default
 
+        if isinstance(r, str) or isinstance(r, unicode):
+            if decryption_key:
+                return self._engine.cryptors_holder.get(decryptor or self._decryptor).decrypt(r, decryption_key)
+
         return r
 
-    def invalidate(
-        self
-    ):
+    def invalidate(self):
+        """
+        Check if key has been changed and must be invalidated.
+
+        :return: self
+        """
+
         if json.dumps(self.v.data) != json.dumps(self._old):
             self._old = self.v.data
 
@@ -109,9 +103,7 @@ class StorageRootKey(EngineModule, Dict):
 
         return self
 
-    def update(
-        self, throw=False
-    ):
+    def update(self, throw=False):
         if self._driver:
             try:
                 self.set_value(self._driver.g(self.k))

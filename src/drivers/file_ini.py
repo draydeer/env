@@ -7,9 +7,7 @@ from src.errors import NotExistsError
 
 class FileIni(Driver):
 
-    def g(
-        self, k
-    ):
+    def g(self, k):
         data = ConfigParser()
 
         data.read(self._config['file'])
@@ -19,4 +17,4 @@ class FileIni(Driver):
         if k in data:
             return data[k]
 
-        raise NotExistsError(k)
+        raise NotExistsError("Key not exists: %s" % k)

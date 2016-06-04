@@ -11,9 +11,7 @@ class File(TypeHandler):
 
     alias = 'systemFile'
 
-    def _evaluate(
-        self, cmd, file, parameters, template
-    ):
+    def _evaluate(self, cmd, file, parameters, template):
         file = open(file, 'w+')
 
         file.write(Template(template).render(**parameters))
@@ -24,17 +22,15 @@ class File(TypeHandler):
                 if isinstance(v, str) or isinstance(v, unicode):
                     os.system(v)
 
-    def __call__(
-        self, cmd=None, file=None, parameters=None, template=None, *args, **kwargs
-    ):
-        if self.has_config('keys.' + file):
-            config = self.get_config('keys.' + file)
+    def __call__(self, cmd=None, filename=None, parameters=None, template=None, *args, **kwargs):
+        if self.has_config('keys.' + filename):
+            config = self.get_config('keys.' + filename)
         else:
             config = self.get_config('default')
 
         self._evaluate(
             config.cmd or cmd,
-            config.file or file,
+            config.file or filename,
             dict_join(
                 config.parameters,
                 parameters,

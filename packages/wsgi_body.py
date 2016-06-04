@@ -6,9 +6,7 @@ import json
 class WsgiBody:
 
     @classmethod
-    def read(
-        cls, env
-    ):
+    def read(cls, env):
         try:
             length = int(env.get('CONTENT_LENGTH'))
 

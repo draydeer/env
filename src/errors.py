@@ -5,9 +5,7 @@ class Error(BaseException):
     message = None
 
     @classmethod
-    def throw(
-        cls, value=None
-    ):
+    def throw(cls, value=None):
         raise cls(value)
 
 

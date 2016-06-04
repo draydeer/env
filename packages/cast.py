@@ -4,9 +4,7 @@ class IncompatibleError(BaseException):
     pass
 
 
-def try_type(
-    v, *args
-):
+def try_type(v, *args):
     if reduce(lambda x, y: x or y, map(lambda x: v is None if x is None else isinstance(v, x), args)):
         return v
 

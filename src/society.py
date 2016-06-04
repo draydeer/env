@@ -16,9 +16,7 @@ class Member:
     port = const.PORT
     version = 0
 
-    def __init__(
-        self, host, friends=None, port=None, version=0
-    ):
+    def __init__(self, host, friends=None, port=None, version=0):
         self.friends = friends if isinstance(friends, list) else []
         self.version = version
 
@@ -35,42 +33,32 @@ class Member:
             self.port = port
 
     @property
-    def key(
-        self
-    ):
+    def key(self):
         return self.host + ':' + self.port
 
-    def set_host(
-        self, value
-    ):
+    def set_host(self, value):
         self.host = value
 
         return self
 
-    def set_port(
-        self, value
-    ):
+    def set_port(self, value):
         self.port = value
 
         return self
 
 
-class Socium(EngineModule):
+class Society(EngineModule):
 
     _announce_interval = 60
     _members = {}
 
-    def _announce_loop(
-        self
-    ):
+    def _announce_loop(self):
         while self.alive:
             self.announce()
 
             gevent.sleep(self._announce_interval)
 
-    def __init__(
-        self, engine, members, announce_interval=60, port=const.PORT
-    ):
+    def __init__(self, engine, members, announce_interval=60, port=const.PORT):
         EngineModule.__init__(self, engine)
 
         self._announce_interval = announce_interval if announce_interval >= 15 else 15
@@ -80,25 +68,19 @@ class Socium(EngineModule):
         gevent.spawn(self._announce_loop)
 
     @property
-    def descriptor(
-        self
-    ):
+    def descriptor(self):
         return {
             'friends': [member for member in self._members.iterkeys()],
             'port': self._port,
             'version': self._engine.version,
         }
 
-    def set_port(
-        self, value
-    ):
+    def set_port(self, value):
         self._port = value
 
         return self
 
-    def announce(
-        self
-    ):
+    def announce(self):
         patch = {}
 
         for k, v in self._members.iteritems():
@@ -119,14 +101,14 @@ class Socium(EngineModule):
                 else:
                     result = None
 
-                    self.logger.critical('Member left: ' + k + ' (code: ' + result.status_code + ')')
+                    self.logger.critical("Member left: %s (code: %s)" % (k, result.status_code))
             except requests.exceptions.ConnectionError:
                 self.logger.critical('Member left: ' + k + ' (connection timeout)')
 
             if result is None:
                 patch[k] = None
 
-                self.event('on_socium_member_leave', k)
+                self.event('on_society_member_leave', k)
 
         for k, v in patch.iteritems():
             if v is None:
@@ -136,7 +118,7 @@ class Socium(EngineModule):
 
         # if amount of members is less then minimal try to involve
         if len(self._members) < const.SOCIUM_MIN_KNOWN:
-            self.logger.info('On look for new members...')
+            self.logger.info('On look for new members ...')
 
             for member in self._members.itervalues():
 
@@ -148,41 +130,31 @@ class Socium(EngineModule):
                     if len(self._members) >= const.SOCIUM_MIN_KNOWN:
                         break
 
-        self.event('on_socium_populate')
+        self.event('on_society_populate')
 
         return self
 
-    def enter(
-        self, k, descriptor=None
-    ):
+    def enter(self, k, descriptor=None):
         self._members[k] = descriptor if isinstance(descriptor, Member) else Member(**(descriptor if isinstance(descriptor, dict) else {}))
 
         return self
 
-    def enter_host_scheme(
-        self, host, descriptor=None, scheme='http'
-    ):
+    def enter_host_scheme(self, host, descriptor=None, scheme='http'):
         member = Member(**(descriptor if isinstance(descriptor, dict) else {})).set_host(scheme + '://' + host)
 
         return self.enter(scheme + '://' + member.key, member)
 
-    def has(
-        self, k
-    ):
+    def has(self, k):
         return k in self._members
 
-    def leave(
-        self, k
-    ):
+    def leave(self, k):
         self._members.pop(k)
 
         return self
 
-    def select(
-        self
-    ):
+    def select(self):
         if len(self._members) == 0:
-            raise InternalError('no members to select')
+            raise InternalError('No members to select.')
 
         k = sample(self._members, 1)[0]
 

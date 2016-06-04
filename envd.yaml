@@ -27,7 +27,7 @@ eventHandlers:
                     parameters:
                         roota: /usr/local/dev/local/env/tests
 keys:
-    - system
+    - system1
 mode: keeper
 routes:
     b.*: mongo
@@ -37,6 +37,6 @@ routes:
     a:
         driver: mongo
         projection: base
-socium:
+society:
     members:
         - http://localhost:7334

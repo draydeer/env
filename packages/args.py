@@ -6,9 +6,7 @@ import config
 class Args(config.Config):
 
     @staticmethod
-    def parse(
-        argv, offset=1
-    ):
+    def parse(argv, offset=1):
         if isinstance(argv, str):
             argv = argv.split(' ')
 
@@ -37,9 +35,7 @@ class Args(config.Config):
 
         return Args(args)
 
-    def arg(
-        self, k, d=None
-    ):
+    def arg(self, k, d=None):
         for k in k if isinstance(k, list) else [k]:
             if isinstance(k, str) and k in self:
                 return self[k]

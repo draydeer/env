@@ -17,21 +17,15 @@ class StorageRefreshTimer:
     _f = None
     _timer_payloads_by_intervals = {}
 
-    def __init__(
-        self
-    ):
+    def __init__(self):
         pass
 
-    def set_f(
-        self, f
-    ):
+    def set_f(self, f):
         self._f = f
 
         return self
 
-    def attach(
-        self, interval, k, payload=None
-    ):
+    def attach(self, interval, k, payload=None):
         interval = int(interval)
 
         if interval > 0:
@@ -49,9 +43,7 @@ class StorageRefreshTimer:
 
             self._timer_payloads_by_intervals[interval][k] = payload
 
-    def detach(
-        self, v
-    ):
+    def detach(self, v):
         pass
 
 
@@ -60,15 +52,14 @@ class Storage(EngineModule):
     DEFAULT_ROUTE_PATTERN = '.*'
 
     _active_driver = None
+    _allowed_rules = {}
     _compiler = None
     _engine = None
     _keys = {}
     _key_routes = {}
     _timer = StorageRefreshTimer()
 
-    def _on_detach(
-        self, keys
-    ):
+    def _on_detach(self, keys):
         patch = []
         total = 0
 
@@ -82,11 +73,9 @@ class Storage(EngineModule):
 
         map(keys.pop, patch)
 
-        logger.info('Keys pruned: ' + str(total))
+        logger.info("Keys pruned: %s" % total)
 
-    def _on_invalidate(
-        self, keys
-    ):
+    def _on_invalidate(self, keys):
         patch = []
         total = 0
 
@@ -100,11 +89,9 @@ class Storage(EngineModule):
 
         map(keys.pop, patch)
 
-        logger.info('Keys updated: ' + str(total))
+        logger.info("Keys updated: %s" % total)
 
-    def _on_invalidate_compile(
-        self, keys
-    ):
+    def _on_invalidate_compile(self, keys):
         patch = []
         total = 0
 
@@ -118,11 +105,9 @@ class Storage(EngineModule):
 
         map(keys.pop, patch)
 
-        logger.info('Keys updated: ' + str(total))
+        logger.info("Keys updated: %s" % total)
 
-    def __init__(
-        self, engine
-    ):
+    def __init__(self, engine):
         EngineModule.__init__(self, engine)
 
         self.set_mode_keeper().set_route(Storage.DEFAULT_ROUTE_PATTERN)
@@ -133,62 +118,61 @@ class Storage(EngineModule):
 
         # preset keys
         for i, k in enumerate(engine.config.g('keys', [])):
-            self.g(k)
+            try:
+                self.g(k)
+            except BaseException as e:
+                logger.error(e)
 
-    def set_active_driver(
-        self, driver, config=None
-    ):
-        self._active_driver = self._engine.get_driver_holder().req(driver, self._engine, config) if isinstance(driver, str) else driver
+    def set_active_driver(self, driver, config=None):
+        if isinstance(driver, str):
+            self._active_driver = self._engine.driver_holder.req(driver, self._engine, config)
+        else:
+            self._active_driver = driver
 
         return self
 
-    def set_compiler(
-        self, compiler
-    ):
+    def set_compiler(self, compiler):
         self._compiler = try_type(compiler, StorageCompiler, None)
 
         return self
 
-    def set_route(
-        self, pattern, driver=None, projection=None
-    ):
+    def set_route(self, pattern, driver=None, projection=None):
         self._key_routes[pattern] = [
             re.compile(pattern),
             StorageRoute(
-                self._engine.get_driver_holder().req(driver, self._engine) if driver else self._active_driver,
+                self._engine.driver_holder.req(driver, self._engine) if driver else self._active_driver,
                 projection
             )
         ]
 
         return self
 
-    def set_mode_client(
-        self
-    ):
+    def set_mode_client(self):
         self.set_compiler(None)._timer.set_f(self._on_invalidate)
+
+        self._allowed_rules = {'var': True}
 
         return self.set_active_driver('env')
 
-    def set_mode_keeper(
-        self
-    ):
+    def set_mode_keeper(self):
         self.set_compiler(StorageCompiler(self._engine, self))._timer.set_f(self._on_invalidate_compile)
 
-        return self.set_active_driver(self._engine.get_driver_holder().get_default(self._engine))
+        self._allowed_rules = {'env': True, 'var': True}
 
-    def set_mode_server(
-        self
-    ):
+        return self.set_active_driver(self._engine.driver_holder.get_default(self._engine))
+
+    def set_mode_server(self):
         self.set_compiler(StorageCompiler(self._engine, self))._timer.set_f(self._on_detach)
+
+        self._allowed_rules = {'env': True}
 
         return self
 
-    def g(
-        self, k, default_value=None, raw=False
-    ):
+    def g(self, k, default_value=None, raw=False):
         k = k.split(':')
 
         decryption_key = k[2] if len(k) > 2 else None
+        decryptor = k[3] if len(k) > 3 else None
         sync_period = k[1] if len(k) > 1 else None
 
         if len(k[0]):
@@ -212,21 +196,31 @@ class Storage(EngineModule):
                             if sync_period.isdigit():
                                 self._timer.attach(sync_period, k[0])
                             else:
-                                raise BadArgumentError('invalid sync period')
+                                raise BadArgumentError('Invalid sync period.')
                         else:
                             self._timer.attach(60, k[0])
 
                         storage_key = StorageRootKey(
-                            self._engine, route.projection or k[0], route.driver, decryption_key=decryption_key
+                            self._engine,
+                            route.projection or k[0],
+                            route.driver,
+                            decryption_key=decryption_key
                         )
 
                         if self._compiler:
-                            storage_key.set_value(self._compiler.compile(k[0], storage_key.get_value()))
+                            storage_key.set_value(self._compiler.compile(
+                                k[0],
+                                storage_key.get_value(),
+                                self._allowed_rules
+                            ))
 
                         self._keys[k[0]] = storage_key.invalidate()
                     else:
-                        raise NotExistsError('route not found')
+                        raise NotExistsError('Route not found.')
 
-                return self._keys[k[0]].to_dict() if raw else self._keys[k[0]].g(k[1:], default_value)
+                if raw:
+                    self._keys[k[0]].to_dict()
+
+                return self._keys[k[0]].g(k[1:], default_value, decryption_key, decryptor)
 
         raise BadArgumentError()

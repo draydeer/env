@@ -17,9 +17,7 @@ errors = {
 
 class Consul(Driver):
 
-    def g(
-        self, k
-    ):
+    def g(self, k):
         result = requests.request(
             'GET',
             'http://' + self._config.get('host', 'localhost:8500') + '/v1/kv/' + k,
@@ -41,6 +39,7 @@ class Consul(Driver):
                     if keys[0] == '':
                         return Value(base64.b64decode(result[0]['Value']))
 
+                    key = None
                     temp = d
 
                     # reconstruct recursive keys
