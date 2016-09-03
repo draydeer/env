@@ -35,9 +35,9 @@ class Args(config.Config):
 
         return Args(args)
 
-    def arg(self, k, d=None):
-        for k in k if isinstance(k, list) else [k]:
-            if isinstance(k, str) and k in self:
-                return self[k]
+    def arg(self, key, default_value=None):
+        for key in key if isinstance(key, list) else [key]:
+            if isinstance(key, str) and key in self:
+                return self[key]
 
-        return d
+        return default_value

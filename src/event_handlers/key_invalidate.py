@@ -16,7 +16,7 @@ class KeyInvalidate(EventHandler):
         }
 
     def __call__(self, value):
-        key_type = self._types.get(value.get_type())
+        key_type = self._types.get(value.type)
 
         if key_type:
             key_type(**value.get_value())

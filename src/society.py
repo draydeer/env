@@ -117,7 +117,7 @@ class Society(EngineModule):
                 self._members[k] = v
 
         # if amount of members is less then minimal try to involve
-        if len(self._members) < const.SOCIUM_MIN_KNOWN:
+        if len(self._members) < const.SOCIETY_MIN_KNOWN:
             self.logger.info('On look for new members ...')
 
             for member in self._members.itervalues():
@@ -127,7 +127,7 @@ class Society(EngineModule):
                     if friend not in self._members:
                         self.enter(friend)
 
-                    if len(self._members) >= const.SOCIUM_MIN_KNOWN:
+                    if len(self._members) >= const.SOCIETY_MIN_KNOWN:
                         break
 
         self.event('on_society_populate')

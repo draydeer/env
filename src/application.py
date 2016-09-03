@@ -55,11 +55,10 @@ class Application(object):
     def __init__(self, args, config=None):
         self._arguments = args
         self._config = Config(config)
-        self._engine = Engine(self._config).set_storage_mode(args.arg(['client', 'keeper', 'server'], 'client'))
 
     def run(self):
         logger\
-            .splitter()\
+            .nl()\
             .indented('Envd')\
             .indented('2016, version 0.1a')\
             .splitter()\
@@ -125,6 +124,11 @@ class Application(object):
 
         bind = self._arguments.arg('bind', const.BIND)
         port = int(self._arguments.arg(['p', 'port'], int(const.PORT)))
+
+        self._engine = Engine(self._config)\
+            .set_storage_mode(
+                self._arguments.arg(['client', 'keeper', 'server'], 'client')
+            )
 
         logger.warning('Server is up and running on: ' + bind + ':' + str(port))
 

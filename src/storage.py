@@ -81,7 +81,9 @@ class Storage(EngineModule):
 
         for k in list(keys.keys()):
             if k in self._keys:
-                self._keys[k].set_value(self._keys[k].update().get_value()).invalidate()
+                self._keys[k].set_value(
+                    self._keys[k].update().get_value()
+                ).invalidate()
 
                 total += 1
             else:
@@ -97,7 +99,9 @@ class Storage(EngineModule):
 
         for k in list(keys.keys()):
             if k in self._keys:
-                self._keys[k].set_value(self._compiler.compile(k, self._keys[k].update().get_value())).invalidate()
+                self._keys[k].set_value(
+                    self._compiler.compile(k, self._keys[k].update().get_value())
+                ).invalidate()
 
                 total += 1
             else:
@@ -168,20 +172,20 @@ class Storage(EngineModule):
 
         return self
 
-    def g(self, k, default_value=None, raw=False):
-        k = k.split(':')
+    def g(self, path, default_value=None, raw=False):
+        path = path.split(':')
 
-        decryption_key = k[2] if len(k) > 2 else None
-        decryptor = k[3] if len(k) > 3 else None
-        sync_period = k[1] if len(k) > 1 else None
+        decryption_key = path[2] if len(path) > 2 else None
+        decryptor = path[3] if len(path) > 3 else None
+        sync_period = path[1] if len(path) > 1 else None
 
-        if len(k[0]):
-            k = k[0].split('.')
+        if len(path[0]):
+            path = path[0].split('.')
 
-            if len(k):
-                if k[0] not in self._keys:
+            if len(path):
+                if path[0] not in self._keys:
                     route = reduce(
-                        lambda x, (a, b): b if a != Storage.DEFAULT_ROUTE_PATTERN and b[0].match(k[0]) else x,
+                        lambda x, (a, b): b if a != Storage.DEFAULT_ROUTE_PATTERN and b[0].match(path[0]) else x,
                         self._key_routes.iteritems(),
                         None
                     )
@@ -194,33 +198,33 @@ class Storage(EngineModule):
 
                         if sync_period:
                             if sync_period.isdigit():
-                                self._timer.attach(sync_period, k[0])
+                                self._timer.attach(sync_period, path[0])
                             else:
                                 raise BadArgumentError('Invalid sync period.')
                         else:
-                            self._timer.attach(60, k[0])
+                            self._timer.attach(60, path[0])
 
                         storage_key = StorageRootKey(
                             self._engine,
-                            route.projection or k[0],
+                            route.projection or path[0],
                             route.driver,
                             decryption_key=decryption_key
                         )
 
                         if self._compiler:
                             storage_key.set_value(self._compiler.compile(
-                                k[0],
-                                storage_key.get_value(),
+                                path[0],
+                                storage_key.value,
                                 self._allowed_rules
                             ))
 
-                        self._keys[k[0]] = storage_key.invalidate()
+                        self._keys[path[0]] = storage_key.invalidate()
                     else:
                         raise NotExistsError('Route not found.')
 
                 if raw:
-                    self._keys[k[0]].to_dict()
+                    self._keys[path[0]].to_dict()
 
-                return self._keys[k[0]].g(k[1:], default_value, decryption_key, decryptor)
+                return self._keys[path[0]].g(path[1:], default_value, decryption_key, decryptor)
 
         raise BadArgumentError()
