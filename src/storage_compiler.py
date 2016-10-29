@@ -1,5 +1,4 @@
 
-
 import os
 
 from src.driver import Value
@@ -25,6 +24,7 @@ class StorageCompiler(EngineModule):
         :param val: Value (document or simple value).
         :param allowed_rules: Set of allowed rules to be applied on rule values - [@@].
         :param force_value: Return initialized [Value] instead of raw data.
+
         :return:
         """
         if key in self._key_compile_locks:

@@ -1,5 +1,4 @@
 
-
 class Error(BaseException):
 
     message = None

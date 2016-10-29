@@ -1,5 +1,4 @@
 
-
 def dict_join(*args):
     return {k: v for a in args for k, v in (a if isinstance(a, dict) else {}).iteritems()}
 

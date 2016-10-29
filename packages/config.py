@@ -1,5 +1,4 @@
 
-
 class Config(dict):
 
     def __init__(self, d=None):

@@ -1,3 +1,4 @@
+
 import os
 
 from src.engine_module import EngineModule
@@ -21,6 +22,7 @@ class StorageCompiler(EngineModule):
         :param k: Key.
         :param v: Value (document or simple value).
         :param allowed_rules: Set of allowed rules to be applied on rule values - [@@].
+
         :return:
         """
         if k in self._key_compile_locks:

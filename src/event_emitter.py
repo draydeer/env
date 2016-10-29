@@ -1,5 +1,4 @@
 
-
 class EventEmitter:
 
     _inst = None

@@ -135,7 +135,10 @@ class Society(EngineModule):
         return self
 
     def enter(self, k, descriptor=None):
-        self._members[k] = descriptor if isinstance(descriptor, Member) else Member(**(descriptor if isinstance(descriptor, dict) else {}))
+        if isinstance(descriptor, Member):
+            self._members[k] = descriptor
+        else:
+            self._members[k] = Member(**(descriptor if isinstance(descriptor, dict) else {}))
 
         return self
 

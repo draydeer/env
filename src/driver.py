@@ -1,5 +1,4 @@
 
-
 from src.configurable import Configurable
 from src.engine_module import EngineModule
 from packages.serializer import Dict
@@ -32,7 +31,7 @@ class Value(Dict, EngineModule):
 
     def decrypt(self, decryption_key=None, data=None):
         if self.encrypted_count > 0:
-            if data == None:
+            if data is None:
                 data = self.data
 
     def g(self, path, default_value=None, decryption_key=None, decryptor=None):

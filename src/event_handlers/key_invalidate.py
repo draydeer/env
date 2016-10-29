@@ -1,5 +1,4 @@
 
-
 from src.event_handler import EventHandler
 from src.event_handlers.types.file import File
 

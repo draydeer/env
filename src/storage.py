@@ -1,5 +1,4 @@
 
-
 import gevent
 import re
 
@@ -14,14 +13,14 @@ from packages.logger import logger
 
 class StorageRefreshTimer:
 
-    _f = None
+    _refresh_callback = None
     _timer_payloads_by_intervals = {}
 
     def __init__(self):
         pass
 
-    def set_f(self, f):
-        self._f = f
+    def set_f(self, refresh_callback):
+        self._refresh_callback = refresh_callback
 
         return self
 
@@ -34,8 +33,8 @@ class StorageRefreshTimer:
                     while True:
                         gevent.sleep(interval)
 
-                        if self._f:
-                            self._f(self._timer_payloads_by_intervals[interval])
+                        if self._refresh_callback:
+                            self._refresh_callback(self._timer_payloads_by_intervals[interval])
 
                 self._timer_payloads_by_intervals[interval] = {}
 

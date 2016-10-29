@@ -1,5 +1,4 @@
 
-
 class Dict:
 
     def to_dict(self):
